@@ -19,15 +19,9 @@ A modern, optimized Linux TUI (Terminal User Interface) application for creating
 - 📂 **Smart Placement** - Automatically places files in the correct locations:
   - User scope: `~/.local/share/applications/`
   - System scope: `/usr/share/applications/` (requires sudo)
-- 🔧 **Full Field Support** - All standard desktop file fields:
-  - Name, Exec, Icon, Comment
-  - Categories, Terminal flag
-  - And more!
 - 🐧 **Universal Linux Support** - Works on Arch, Ubuntu, Fedora, Debian, and more
 - ⚡ **Modern Packaging** - Uses pyproject.toml, no legacy setup.py
 - 🛡️ **Graceful Dependencies** - Optional features degrade gracefully when dependencies are missing
-- 🏠 **Non-Intrusive Install** - Never modifies .bashrc, .zshrc, or system PATH
-- 📱 **Application Menu Integration** - Shows up in your desktop application menu
 
 ## Installation
 
@@ -75,12 +69,6 @@ This will:
 - ✅ Work on Arch, Ubuntu, Fedora, and any modern Linux distro
 - ✅ **Zero system configuration changes** - completely self-contained
 - ✅ Easy to uninstall with `./uninstall.sh`
-
-**Why this approach rocks:**
-- 🚫 **No .bashrc/.zshrc modifications** - your shell config stays clean
-- 🚫 **No PATH changes required** - works without environment setup
-- 🎯 **Application menu integration** - launch like any other app
-- 🧹 **Clean uninstall** - removes everything without traces
 
 ### Option 3: Using Make
 
