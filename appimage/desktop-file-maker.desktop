@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Desktop File Maker
+Comment=Create and manage .desktop files with a modern TUI
+Exec=desktop-file-maker
+Icon=application-x-desktop
+Categories=Development;Utility;
+Terminal=true
+StartupNotify=false
+Keywords=desktop;file;creator;appimage;

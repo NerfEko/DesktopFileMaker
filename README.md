@@ -10,18 +10,22 @@ A modern, optimized Linux TUI (Terminal User Interface) application for creating
 
 ## Features
 
-- 🖥️ **Terminal-Based Interface** - Beautiful TUI that runs in your terminal
-- 🔍 **Icon Search** - Search and download icons from the internet (optional)
-- 🎨 **Visual Feedback** - Color-coded interface with real-time validation
+- ✨ **Interactive TUI** - User-friendly terminal interface built with Textual
+- 🔍 **Multi-Source Icon Search** - Search icons from SimpleIcons, Iconify, and DuckDuckGo
+- 🚀 **Smart Autocomplete** - Tab completion for executables and icon paths
+- 🎨 **Color-Coded Results** - Easy-to-identify icon sources with visual indicators
 - 📦 **AppImage Support** - Special handling for AppImage files with auto-detection
-- ✅ **Field Validation** - Real-time validation of all desktop file fields
+- 🖼️ **Icon Management** - Browse and select icons from system icon themes
+- ✅ **Validation** - Real-time validation of all desktop file fields
 - 📝 **Live Preview** - See your desktop file content before saving
 - 📂 **Smart Placement** - Automatically places files in the correct locations:
   - User scope: `~/.local/share/applications/`
   - System scope: `/usr/share/applications/` (requires sudo)
+- 🔧 **Full Field Support** - All standard desktop file fields:
+  - Name, Exec, Icon, Comment
+  - Categories, Terminal flag
+  - And more!
 - 🐧 **Universal Linux Support** - Works on Arch, Ubuntu, Fedora, Debian, and more
-- ⚡ **Modern Packaging** - Uses pyproject.toml, no legacy setup.py
-- 🛡️ **Graceful Dependencies** - Optional features degrade gracefully when dependencies are missing
 
 ## Installation
 
@@ -43,17 +47,15 @@ A modern, optimized Linux TUI (Terminal User Interface) application for creating
    ./DesktopFileMaker-0.1.0-x86_64.AppImage
    ```
 
-**⚠️ Must run from terminal**: Double-clicking the AppImage file won't work because this is a terminal user interface application. You need to open a terminal and run it from the command line.
-
-**That's it!** No installation, no dependencies, just download and run from your terminal.
+**That's it!** No installation, no dependencies, just download and run.
 
 ---
 
 Desktop File Maker also supports installation from source on **all Linux distributions** (Arch, Ubuntu, Fedora, Debian, etc.)
 
-### Option 2: Automatic Installation (Zero System Impact) 🎯
+### Option 2: Smart Installation with Choice 🎯
 
-**Installs completely isolated - no system modifications needed!**
+**Choose your preferred installation mode - user or system-wide!**
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -61,16 +63,48 @@ cd DesktopFileMaker
 ./install.sh
 ```
 
-This will:
-- ✅ Create an isolated virtual environment (no system pollution)
-- ✅ Install all dependencies automatically
-- ✅ Create a launcher in `~/.local/bin/desktop-file-maker`
-- ✅ **Add to application menu** (no PATH modification required!)
-- ✅ Work on Arch, Ubuntu, Fedora, and any modern Linux distro
-- ✅ **Zero system configuration changes** - completely self-contained
-- ✅ Easy to uninstall with `./uninstall.sh`
+**Installation Options:**
 
-### Option 3: Using Make
+**🏠 Option 1: User Installation (Default - No sudo required)**
+- ✅ Completely isolated - no system modifications
+- ✅ Installs to `~/.local/bin/desktop-file-maker`  
+- ✅ Launch from application menu
+- ✅ Zero system impact, easy to uninstall
+
+**🌐 Option 2: System-wide Installation (Optional - Requires sudo)**
+- ✅ Run with simple command: `desktop-file-maker` (from anywhere)
+- ✅ Available for all users on the system
+- ✅ Installs to `/usr/local/bin/desktop-file-maker`
+- ✅ Still completely clean and uninstallable
+
+**Why this approach rocks:**
+- 🚫 **Your choice** - No forced system modifications
+- 🎯 **Application menu integration** - Both modes add to application menu
+- 🧹 **Clean uninstall** - `./uninstall.sh` removes everything perfectly
+- ⚡ **Smart detection** - Uninstaller auto-detects installation mode
+
+### Option 3: Arch Linux (AUR) 🏛️
+
+**For Arch users - coming soon to AUR!**
+
+```bash
+# Using yay (recommended)
+yay -S desktop-file-maker
+
+# Using paru
+paru -S desktop-file-maker
+
+# Or the git version for latest development
+yay -S desktop-file-maker-git
+```
+
+Benefits:
+- ✅ **Native Arch package** - integrates perfectly with system
+- ✅ **Automatic updates** with your system updates
+- ✅ **Proper dependency handling** via pacman
+- ✅ **Clean uninstall** with `pacman -R desktop-file-maker`
+
+### Option 4: Using Make
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -78,7 +112,7 @@ cd DesktopFileMaker
 make install
 ```
 
-### Option 4: Manual Installation
+### Option 5: Manual Installation
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -94,7 +128,7 @@ source venv/bin/activate
 pip install -e .
 ```
 
-### Option 5: Using pipx (Isolated Installation)
+### Option 6: Using pipx (Isolated Installation)
 
 ```bash
 pipx install git+https://github.com/NerfEko/DesktopFileMaker.git
@@ -153,13 +187,16 @@ chmod +x DesktopFileMaker-0.1.0-x86_64.AppImage
 # Method 2: From application menu (if installed with ./install.sh)
 # Search for "Desktop File Maker" in your application menu
 
-# Method 3: Using the launcher directly:
+# Method 3: Simple command (if installed system-wide with sudo)
+desktop-file-maker
+
+# Method 4: Using the launcher directly (user installation):
 ~/.local/bin/desktop-file-maker
 
-# Method 4: Using make (if you have the source code):
+# Method 5: Using make (if you have the source code):
 make run
 
-# Method 5: From virtual environment (development):
+# Method 6: From virtual environment (development):
 source venv/bin/activate
 python -m src.main
 ```

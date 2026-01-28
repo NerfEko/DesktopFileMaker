@@ -1,0 +1,36 @@
+# Maintainer: Your Name <your.email@example.com>
+pkgname=desktop-file-maker-git
+pkgver=r.HEAD
+pkgrel=1
+pkgdesc="A modern Linux TUI application for creating and managing .desktop files (development version)"
+arch=('any')
+url="https://github.com/NerfEko/DesktopFileMaker"
+license=('MIT')
+depends=('python' 'python-textual' 'python-requests')
+makedepends=('git' 'python-build' 'python-installer' 'python-wheel' 'python-setuptools')
+optdepends=('python-ddgs: for icon search functionality')
+provides=('desktop-file-maker')
+conflicts=('desktop-file-maker')
+source=("$pkgname::git+$url.git")
+sha256sums=('SKIP')
+
+pkgver() {
+    cd "$pkgname"
+    printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+    cd "$pkgname"
+    python -m build --wheel --no-isolation
+}
+
+package() {
+    cd "$pkgname"
+    python -m installer --destdir="$pkgdir" dist/*.whl
+    
+    # Install license
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    
+    # Install desktop entry
+    install -Dm644 appimage/desktop-file-maker.desktop "$pkgdir/usr/share/applications/desktop-file-maker.desktop"
+}
