@@ -150,28 +150,32 @@ EOF
     print_success "Launcher created at $LAUNCHER"
 }
 
-# Check if ~/.local/bin is in PATH
-check_path() {
-    if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-        print_warning "~/.local/bin is not in your PATH"
-        echo ""
-        echo "Add the following to your shell configuration file:"
-        echo ""
-        
-        # Detect shell
-        if [ -n "$BASH_VERSION" ]; then
-            SHELL_CONFIG="~/.bashrc"
-        elif [ -n "$ZSH_VERSION" ]; then
-            SHELL_CONFIG="~/.zshrc"
-        else
-            SHELL_CONFIG="~/.profile"
-        fi
-        
-        echo -e "${YELLOW}export PATH=\"\$HOME/.local/bin:\$PATH\"${NC}"
-        echo ""
-        echo "Then run: source $SHELL_CONFIG"
-        echo ""
-    fi
+# Create desktop entry for easy launching
+create_desktop_entry() {
+    print_info "Creating desktop entry for easy access..."
+    
+    DESKTOP_DIR="$HOME/.local/share/applications"
+    DESKTOP_FILE="$DESKTOP_DIR/desktop-file-maker.desktop"
+    
+    # Ensure applications directory exists
+    mkdir -p "$DESKTOP_DIR"
+    
+    # Create desktop entry
+    cat > "$DESKTOP_FILE" << EOF
+[Desktop Entry]
+Type=Application
+Name=Desktop File Maker
+Comment=Create and manage .desktop files with a modern TUI
+Exec=$LAUNCHER
+Icon=application-x-desktop
+Categories=Development;Utility;
+Terminal=true
+StartupNotify=false
+Keywords=desktop;file;creator;appimage;
+EOF
+    
+    chmod +x "$DESKTOP_FILE"
+    print_success "Desktop entry created at $DESKTOP_FILE"
 }
 
 # Main installation
@@ -182,51 +186,25 @@ main() {
     create_venv
     install_dependencies
     create_launcher
-    check_path
+    create_desktop_entry
     
     echo ""
     print_success "Installation complete!"
     echo ""
-    echo "To run Desktop File Maker:"
+    echo "No system modifications required! You can run Desktop File Maker in these ways:"
     echo ""
-    echo "  1. If ~/.local/bin is in your PATH:"
-    echo -e "     ${GREEN}desktop-file-maker${NC}"
+    echo "  1. From the application menu (search for 'Desktop File Maker')"
     echo ""
-    echo "  2. Or run directly:"
+    echo "  2. Run the launcher directly:"
     echo -e "     ${GREEN}$BIN_DIR/desktop-file-maker${NC}"
     echo ""
-    echo "  3. Or from the installation directory:"
+    echo "  3. From the installation directory:"
     echo -e "     ${GREEN}make run${NC}"
     echo ""
-    
-    # Offer to add to PATH if not present
-    if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
-        echo -n "Would you like to add ~/.local/bin to your PATH now? (y/N) "
-        read -r response
-        if [[ "$response" =~ ^[Yy]$ ]]; then
-            # Detect shell config file
-            if [ -n "$BASH_VERSION" ]; then
-                SHELL_CONFIG="$HOME/.bashrc"
-            elif [ -n "$ZSH_VERSION" ]; then
-                SHELL_CONFIG="$HOME/.zshrc"
-            else
-                SHELL_CONFIG="$HOME/.profile"
-            fi
-            
-            # Add to PATH if not already there
-            if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$SHELL_CONFIG" 2>/dev/null; then
-                echo '' >> "$SHELL_CONFIG"
-                echo '# Added by Desktop File Maker installer' >> "$SHELL_CONFIG"
-                echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_CONFIG"
-                print_success "Added to $SHELL_CONFIG"
-                echo ""
-                echo "Run this to use desktop-file-maker immediately:"
-                echo -e "${GREEN}source $SHELL_CONFIG${NC}"
-            else
-                print_info "PATH already configured in $SHELL_CONFIG"
-            fi
-        fi
-    fi
+    echo "  4. Or create an alias for convenience:"
+    echo -e "     ${GREEN}alias dfm='$BIN_DIR/desktop-file-maker'${NC}"
+    echo ""
+    print_info "Note: The application will appear in your application menu for easy access!"
 }
 
 # Run installation

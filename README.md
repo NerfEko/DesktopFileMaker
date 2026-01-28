@@ -26,6 +26,8 @@ A modern, optimized Linux TUI (Terminal User Interface) application for creating
 - 🐧 **Universal Linux Support** - Works on Arch, Ubuntu, Fedora, Debian, and more
 - ⚡ **Modern Packaging** - Uses pyproject.toml, no legacy setup.py
 - 🛡️ **Graceful Dependencies** - Optional features degrade gracefully when dependencies are missing
+- 🏠 **Non-Intrusive Install** - Never modifies .bashrc, .zshrc, or system PATH
+- 📱 **Application Menu Integration** - Shows up in your desktop application menu
 
 ## Installation
 
@@ -55,9 +57,9 @@ A modern, optimized Linux TUI (Terminal User Interface) application for creating
 
 Desktop File Maker also supports installation from source on **all Linux distributions** (Arch, Ubuntu, Fedora, Debian, etc.)
 
-### Option 2: Automatic Installation (Recommended for Development)
+### Option 2: Automatic Installation (Zero System Impact) 🎯
 
-The easiest way to install on any Linux distribution:
+**Installs completely isolated - no system modifications needed!**
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -69,8 +71,16 @@ This will:
 - ✅ Create an isolated virtual environment (no system pollution)
 - ✅ Install all dependencies automatically
 - ✅ Create a launcher in `~/.local/bin/desktop-file-maker`
+- ✅ **Add to application menu** (no PATH modification required!)
 - ✅ Work on Arch, Ubuntu, Fedora, and any modern Linux distro
-- ✅ No root/sudo required
+- ✅ **Zero system configuration changes** - completely self-contained
+- ✅ Easy to uninstall with `./uninstall.sh`
+
+**Why this approach rocks:**
+- 🚫 **No .bashrc/.zshrc modifications** - your shell config stays clean
+- 🚫 **No PATH changes required** - works without environment setup
+- 🎯 **Application menu integration** - launch like any other app
+- 🧹 **Clean uninstall** - removes everything without traces
 
 ### Option 3: Using Make
 
@@ -152,13 +162,16 @@ The build script will:
 chmod +x DesktopFileMaker-0.1.0-x86_64.AppImage
 ./DesktopFileMaker-0.1.0-x86_64.AppImage
 
-# Method 2: If installed from source and ~/.local/bin is in your PATH:
-desktop-file-maker
+# Method 2: From application menu (if installed with ./install.sh)
+# Search for "Desktop File Maker" in your application menu
 
-# Method 3: Using make (if you have the source code):
+# Method 3: Using the launcher directly:
+~/.local/bin/desktop-file-maker
+
+# Method 4: Using make (if you have the source code):
 make run
 
-# Method 4: From virtual environment (development):
+# Method 5: From virtual environment (development):
 source venv/bin/activate
 python -m src.main
 ```
@@ -365,14 +378,22 @@ pytest --cov=src tests/
 
 ## Uninstallation
 
-```bash
-# Using make
-make uninstall
+**Complete removal with zero traces:**
 
-# Or manually
+```bash
+# Using the uninstall script (recommended)
+./uninstall.sh
+
+# Or manually remove files:
 rm -rf venv
 rm ~/.local/bin/desktop-file-maker
+rm ~/.local/share/applications/desktop-file-maker.desktop
+
+# Then delete the source directory
+rm -rf ~/path/to/desktop-file-maker
 ```
+
+**No configuration files to clean up** - the installer never modifies your shell configuration!
 
 ## Common Use Cases
 
