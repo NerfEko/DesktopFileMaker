@@ -16,8 +16,22 @@ NC='\033[0m' # No Color
 # Directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$SCRIPT_DIR/venv"
-BIN_DIR="$HOME/.local/bin"
+USER_BIN_DIR="$HOME/.local/bin"
+SYSTEM_BIN_DIR="/usr/local/bin"
 DESKTOP_DIR="$HOME/.local/share/applications"
+
+# Detect installation mode
+USER_LAUNCHER="$USER_BIN_DIR/desktop-file-maker"
+SYSTEM_LAUNCHER="$SYSTEM_BIN_DIR/desktop-file-maker"
+INSTALL_MODE="none"
+
+if [[ -f "$SYSTEM_LAUNCHER" ]]; then
+    INSTALL_MODE="system"
+    LAUNCHER="$SYSTEM_LAUNCHER"
+elif [[ -f "$USER_LAUNCHER" ]]; then
+    INSTALL_MODE="user"
+    LAUNCHER="$USER_LAUNCHER"
+fi
 
 # Print functions
 print_info() {
@@ -48,8 +62,17 @@ print_header() {
 main() {
     print_header
     
+    if [[ "$INSTALL_MODE" == "none" ]]; then
+        print_warning "No Desktop File Maker installation detected"
+        echo "Checking for remaining files..."
+    else
+        echo "Detected $INSTALL_MODE installation of Desktop File Maker."
+    fi
+    
     echo "This will completely remove Desktop File Maker from your system."
-    echo "No system configuration files will be modified."
+    if [[ "$INSTALL_MODE" == "system" ]]; then
+        echo "System-wide installation requires sudo to remove."
+    fi
     echo ""
     echo -n "Are you sure you want to continue? (y/N) "
     read -r response
@@ -68,11 +91,27 @@ main() {
         print_success "Removed virtual environment"
     fi
     
-    # Remove launcher script
-    LAUNCHER="$BIN_DIR/desktop-file-maker"
-    if [ -f "$LAUNCHER" ]; then
-        rm -f "$LAUNCHER"
-        print_success "Removed launcher script"
+    # Remove launcher script based on installation mode
+    if [[ "$INSTALL_MODE" == "system" ]] && [[ -f "$SYSTEM_LAUNCHER" ]]; then
+        sudo rm -f "$SYSTEM_LAUNCHER"
+        print_success "Removed system launcher script (with sudo)"
+    elif [[ "$INSTALL_MODE" == "user" ]] && [[ -f "$USER_LAUNCHER" ]]; then
+        rm -f "$USER_LAUNCHER"
+        print_success "Removed user launcher script"
+    fi
+    
+    # Also check for and remove the other location (cleanup)
+    if [[ -f "$USER_LAUNCHER" ]] && [[ "$INSTALL_MODE" != "user" ]]; then
+        rm -f "$USER_LAUNCHER"
+        print_success "Removed user launcher script (cleanup)"
+    fi
+    if [[ -f "$SYSTEM_LAUNCHER" ]] && [[ "$INSTALL_MODE" != "system" ]]; then
+        if sudo -n true 2>/dev/null; then
+            sudo rm -f "$SYSTEM_LAUNCHER"
+            print_success "Removed system launcher script (cleanup)"
+        else
+            print_warning "System launcher exists but no sudo access for removal: $SYSTEM_LAUNCHER"
+        fi
     fi
     
     # Remove desktop entry
@@ -90,11 +129,17 @@ main() {
     
     echo ""
     print_success "Desktop File Maker has been completely removed"
+    
+    if [[ "$INSTALL_MODE" == "system" ]]; then
+        echo ""
+        echo "The system-wide command 'desktop-file-maker' has been removed."
+    fi
+    
     echo ""
     echo "The source code directory can be safely deleted:"
     echo -e "${YELLOW}rm -rf \"$SCRIPT_DIR\"${NC}"
     echo ""
-    print_info "No system configuration files were modified during installation or removal"
+    print_info "No configuration files were modified during installation or removal"
 }
 
 # Run uninstallation
