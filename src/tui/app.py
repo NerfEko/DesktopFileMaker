@@ -1,5 +1,6 @@
 """Main TUI application for desktop file maker."""
 
+from typing import Optional
 from textual.app import ComposeResult, App
 from textual.containers import Container, Vertical, Horizontal
 from textual.widgets import (
@@ -20,8 +21,11 @@ from src.core import (
     validate_all_fields,
     save_desktop_file,
     get_user_applications_dir,
-    get_icon_suggestions_for_app,
 )
+from src.core.icon_search import search_icons, IconResult
+from src.tui.widgets.icon_selector import IconSelectorModal
+from src.tui.widgets.exec_suggester import ExecutableSuggester
+from src.tui.widgets.icon_path_suggester import IconPathSuggester
 
 
 class DesktopFileMakerApp(App):
@@ -33,6 +37,11 @@ class DesktopFileMakerApp(App):
         Binding("tab", "focus_next", "Next"),
         Binding("shift+tab", "focus_previous", "Previous"),
     ]
+
+    def __init__(self, *args, **kwargs):
+        """Initialize the app with pending icon state."""
+        super().__init__(*args, **kwargs)
+        self._pending_icon: Optional[IconResult] = None
 
     CSS = """
     Screen {
@@ -105,14 +114,21 @@ class DesktopFileMakerApp(App):
                 # Exec field
                 with Horizontal(classes="form-group"):
                     yield Label("Exec:", classes="form-label")
-                    yield Input(id="exec-input", placeholder="/path/to/executable")
+                    yield Input(
+                        id="exec-input",
+                        placeholder="/path/to/executable",
+                        suggester=ExecutableSuggester(case_sensitive=True),
+                    )
 
-                # Icon field
+                # Icon field with search button
                 with Horizontal(classes="form-group"):
                     yield Label("Icon:", classes="form-label")
-                    with Horizontal():
-                        yield Input(id="icon-input", placeholder="Icon name or path")
-                        yield Button("Search", id="icon-search-btn", variant="primary")
+                    yield Input(
+                        id="icon-input",
+                        placeholder="/path/to/icon or select search",
+                        suggester=IconPathSuggester(case_sensitive=True),
+                    )
+                    yield Button("Search", id="search-icon-btn", variant="primary")
 
                 # Comment field
                 with Horizontal(classes="form-group"):
@@ -167,7 +183,7 @@ class DesktopFileMakerApp(App):
             self.action_clear()
         elif button_id == "quit-btn":
             self.action_quit()
-        elif button_id == "icon-search-btn":
+        elif button_id == "search-icon-btn":
             self.action_search_icons()
 
     def action_preview(self) -> None:
@@ -175,10 +191,16 @@ class DesktopFileMakerApp(App):
         # Get form values
         name = self.query_one("#name-input", Input).value
         exec_path = self.query_one("#exec-input", Input).value
-        icon = self.query_one("#icon-input", Input).value or None
+        icon_field = self.query_one("#icon-input", Input).value or None
         comment = self.query_one("#comment-input", Input).value or None
         categories_str = self.query_one("#categories-input", Input).value
         terminal = self.query_one("#terminal-select", Select).value
+
+        # Handle pending icon for preview
+        icon = icon_field
+        if self._pending_icon and icon_field and icon_field.startswith("[Selected:"):
+            # For preview, show what the icon will be named
+            icon = f"{self._pending_icon.title[:50]}.png (will be downloaded)"
 
         # Parse categories
         categories = [c.strip() for c in categories_str.split(";") if c.strip()] or None
@@ -209,10 +231,45 @@ class DesktopFileMakerApp(App):
         # Get form values
         name = self.query_one("#name-input", Input).value
         exec_path = self.query_one("#exec-input", Input).value
-        icon = self.query_one("#icon-input", Input).value or None
+        icon_field = self.query_one("#icon-input", Input).value or None
         comment = self.query_one("#comment-input", Input).value or None
         categories_str = self.query_one("#categories-input", Input).value
         terminal = self.query_one("#terminal-select", Select).value
+
+        # Handle pending icon download
+        icon = icon_field
+        if self._pending_icon and icon_field and icon_field.startswith("[Selected:"):
+            # Download the pending icon permanently
+            self.notify("Downloading icon...", severity="information")
+
+            from pathlib import Path
+
+            download_dir = (
+                Path.home()
+                / ".local"
+                / "share"
+                / "icons"
+                / "hicolor"
+                / "512x512"
+                / "apps"
+            )
+            download_dir.mkdir(parents=True, exist_ok=True)
+
+            downloaded_path = self._pending_icon.download_image(download_dir)
+
+            if downloaded_path:
+                icon = str(downloaded_path)
+                self.notify(
+                    f"Icon downloaded: {downloaded_path.name}", severity="information"
+                )
+            else:
+                self.notify(
+                    "Failed to download icon, saving without it", severity="warning"
+                )
+                icon = None
+
+            # Clear pending icon after download
+            self._pending_icon = None
 
         # Parse categories
         categories = [c.strip() for c in categories_str.split(";") if c.strip()] or None
@@ -256,33 +313,60 @@ class DesktopFileMakerApp(App):
         self.query_one("#terminal-select", Select).value = False
         self.query_one("#preview", TextArea).text = ""
 
-    def action_search_icons(self) -> None:
-        """Search for icons based on application name."""
-        name = self.query_one("#name-input", Input).value
-
-        if not name:
-            self.notify("Please enter an application name first", severity="warning")
-            return
-
-        # Get icon suggestions
-        suggestions = get_icon_suggestions_for_app(name, limit=5)
-
-        if not suggestions:
-            self.notify("No icon suggestions found", severity="warning")
-            return
-
-        # Display suggestions
-        message = "Icon suggestions:\n\n"
-        for i, icon in enumerate(suggestions, 1):
-            message += f"{i}. {icon.name} ({icon.source})\n"
-
-        message += "\nEnter the icon name in the Icon field above"
-        self.notify(message, severity="information")
-
-        # Auto-fill with first suggestion
-        if suggestions:
-            self.query_one("#icon-input", Input).value = suggestions[0].name
+        # Clear pending icon download
+        self._pending_icon = None
 
     def action_quit(self) -> None:
         """Quit the application."""
         self.app.exit()
+
+    def action_search_icons(self) -> None:
+        """Search for icons and show selection modal."""
+        # Get search terms from form
+        name = self.query_one("#name-input", Input).value
+        exec_path = self.query_one("#exec-input", Input).value
+
+        # Check if we have something to search for
+        if not name.strip() and not exec_path.strip():
+            self.notify(
+                "Enter an app name or executable path to search for icons",
+                severity="warning",
+            )
+            return
+
+        # Show searching notification
+        self.notify(f"Searching for icons...", severity="information")
+
+        # Search for icons (images)
+        try:
+            results = search_icons(name=name, exec_path=exec_path, limit=40)
+
+            if not results:
+                # This should rarely happen since we're searching the internet
+                self.notify(
+                    f"No images found for '{name or exec_path}'",
+                    severity="warning",
+                )
+                return
+
+            # Show selection modal
+            def on_icon_selected(icon: Optional[IconResult]) -> None:
+                """Handle icon selection from modal."""
+                if icon:
+                    # Store the icon result for later download when saving
+                    self._pending_icon = icon
+
+                    # Show icon info in the Icon field (not a file path yet)
+                    self.query_one(
+                        "#icon-input", Input
+                    ).value = f"[Selected: {icon.display_name}]"
+
+                    self.notify(
+                        f"Icon selected: {icon.display_name} (will download when saved)",
+                        severity="information",
+                    )
+
+            self.app.push_screen(IconSelectorModal(results), on_icon_selected)
+
+        except Exception as e:
+            self.notify(f"Search failed: {str(e)}", severity="error")

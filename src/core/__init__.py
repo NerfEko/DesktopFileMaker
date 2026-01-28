@@ -36,12 +36,10 @@ from .icon_handler import (
     get_common_icon_names,
 )
 from .icon_search import (
-    IconResult,
     search_icons,
-    search_icons_system,
-    search_icons_freedesktop,
-    get_icon_suggestions_for_app,
-    validate_icon_url,
+    extract_search_term,
+    IconResult,
+    search_images_duckduckgo,
 )
 
 __all__ = [
@@ -77,10 +75,8 @@ __all__ = [
     "copy_icon_to_user_share",
     "get_common_icon_names",
     # icon_search
-    "IconResult",
     "search_icons",
-    "search_icons_system",
-    "search_icons_freedesktop",
-    "get_icon_suggestions_for_app",
-    "validate_icon_url",
+    "extract_search_term",
+    "IconResult",
+    "search_images_duckduckgo",
 ]
