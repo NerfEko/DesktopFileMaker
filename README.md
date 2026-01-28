@@ -5,8 +5,11 @@ A modern Linux TUI (Terminal User Interface) application for creating and managi
 ## Features
 
 - ✨ **Interactive TUI** - User-friendly terminal interface built with Textual
+- 🚀 **Smart Autocomplete** - Tab completion for executables and icon paths
+- 🔍 **Multi-Source Icon Search** - Search icons from SimpleIcons, Iconify, and DuckDuckGo
+- 🎨 **Color-Coded Results** - Easy-to-identify icon sources with visual indicators
 - 📦 **AppImage Support** - Special handling for AppImage files with auto-detection
-- 🎨 **Icon Management** - Browse and select icons from system icon themes
+- 🖼️ **Icon Management** - Browse and select icons from system icon themes
 - ✅ **Validation** - Real-time validation of all desktop file fields
 - 📝 **Live Preview** - See your desktop file content before saving
 - 📂 **Smart Placement** - Automatically places files in the correct locations:
@@ -17,31 +20,87 @@ A modern Linux TUI (Terminal User Interface) application for creating and managi
   - Categories, MIME types, Keywords
   - Terminal, NoDisplay, Hidden flags
   - And more!
+- 🐧 **Universal Linux Support** - Works on Arch, Ubuntu, Fedora, Debian, and more
 
 ## Installation
 
-### From Source
+Desktop File Maker works on **all Linux distributions** (Arch, Ubuntu, Fedora, Debian, etc.) without requiring root access or system-wide pip installations.
+
+### Option 1: Automatic Installation (Recommended)
+
+The easiest way to install on any Linux distribution:
 
 ```bash
-git clone https://github.com/yourusername/desktop-file-maker.git
-cd desktop-file-maker
+git clone https://github.com/NerfEko/DesktopFileMaker.git
+cd DesktopFileMaker
+./install.sh
+```
+
+This will:
+- ✅ Create an isolated virtual environment (no system pollution)
+- ✅ Install all dependencies automatically
+- ✅ Create a launcher in `~/.local/bin/desktop-file-maker`
+- ✅ Work on Arch, Ubuntu, Fedora, and any modern Linux distro
+- ✅ No root/sudo required
+
+### Option 2: Using Make
+
+```bash
+git clone https://github.com/NerfEko/DesktopFileMaker.git
+cd DesktopFileMaker
+make install
+```
+
+### Option 3: Manual Installation
+
+```bash
+git clone https://github.com/NerfEko/DesktopFileMaker.git
+cd DesktopFileMaker
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate it
+source venv/bin/activate
+
+# Install
 pip install -e .
 ```
 
-### With Development Dependencies
+### Option 4: Using pipx (Isolated Installation)
 
 ```bash
-pip install -e ".[dev]"
+pipx install git+https://github.com/NerfEko/DesktopFileMaker.git
 ```
+
+### Why This Installation Method?
+
+Modern Linux distributions (Arch, Fedora 38+, Ubuntu 23.04+) follow [PEP 668](https://peps.python.org/pep-0668/) which prevents `pip install` from modifying system Python packages. Our installer:
+
+- 🔒 **Safe**: Uses isolated virtual environment (no `--break-system-packages` needed)
+- 🎯 **Universal**: Works on ALL Linux distros (Arch, Ubuntu, Fedora, Debian, etc.)
+- 🚫 **No Root**: Installs to `~/.local` (no sudo required)
+- 🧹 **Clean**: Easy to uninstall completely
+- ⚡ **Modern**: Follows Python packaging best practices
+
+**For Arch users:** This avoids the `error: externally-managed-environment` without breaking your system!
 
 ## Quick Start
 
 ### Run the Application
 
+After installation, run with:
+
 ```bash
-python -m src.main
-# or if installed
+# If ~/.local/bin is in your PATH:
 desktop-file-maker
+
+# Or using make:
+make run
+
+# Or from venv directly:
+source venv/bin/activate
+python -m src.main
 ```
 
 ### Create a Desktop File
@@ -153,12 +212,17 @@ Built with [Textual](https://textual.textualize.io/), a modern Python TUI framew
 Run the test suite:
 
 ```bash
+# Using make
+make test
+
+# With coverage
+make test-cov
+
+# Or manually
+source venv/bin/activate
 pytest
-```
 
-With coverage:
-
-```bash
+# With coverage
 pytest --cov=src tests/
 ```
 
@@ -166,10 +230,22 @@ pytest --cov=src tests/
 
 | Shortcut | Action |
 |----------|--------|
-| `Tab` | Move to next field |
+| `Tab` | Move to next field / Accept autocomplete |
 | `Shift+Tab` | Move to previous field |
+| `Right Arrow` | Accept autocomplete suggestion |
 | `Ctrl+S` | Save desktop file |
 | `Ctrl+C` | Quit application |
+
+## Uninstallation
+
+```bash
+# Using make
+make uninstall
+
+# Or manually
+rm -rf venv
+rm ~/.local/bin/desktop-file-maker
+```
 
 ## Common Use Cases
 
