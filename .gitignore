@@ -140,3 +140,13 @@ Thumbs.db
 *.AppImage
 build/
 dist/
+
+# AUR build artifacts
+.SRCINFO
+*.pkg.tar.zst
+*.pkg.tar.xz
+pkg/
+src/
+*.tar.gz
+namcap.log
+test-aur.sh
