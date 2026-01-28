@@ -55,11 +55,7 @@ check_dependencies() {
         exit 1
     fi
     
-    if ! command -v pip3 &> /dev/null; then
-        print_error "pip3 is not installed"
-        exit 1
-    fi
-    
+    # Note: pip will be available inside the venv we create
     print_success "Dependencies OK"
 }
 

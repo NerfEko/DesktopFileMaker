@@ -33,7 +33,7 @@ setup(
     install_requires=[
         "textual>=0.47.0",
         "requests>=2.31.0",
-        "duckduckgo-search>=4.0.0",
+        "ddgs>=9.0.0",
         "pillow>=10.0.0",
     ],
     extras_require={
