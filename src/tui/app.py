@@ -1,5 +1,6 @@
 """Main TUI application for desktop file maker."""
 
+from typing import Optional
 from textual.app import ComposeResult, App
 from textual.containers import Container, Vertical, Horizontal
 from textual.widgets import (
@@ -21,6 +22,8 @@ from src.core import (
     save_desktop_file,
     get_user_applications_dir,
 )
+from src.core.icon_search import search_icons, IconResult
+from src.tui.widgets.icon_selector import IconSelectorModal
 
 
 class DesktopFileMakerApp(App):
@@ -106,10 +109,11 @@ class DesktopFileMakerApp(App):
                     yield Label("Exec:", classes="form-label")
                     yield Input(id="exec-input", placeholder="/path/to/executable")
 
-                # Icon field
+                # Icon field with search button
                 with Horizontal(classes="form-group"):
                     yield Label("Icon:", classes="form-label")
                     yield Input(id="icon-input", placeholder="Icon name or path")
+                    yield Button("Search", id="search-icon-btn", variant="primary")
 
                 # Comment field
                 with Horizontal(classes="form-group"):
@@ -164,6 +168,8 @@ class DesktopFileMakerApp(App):
             self.action_clear()
         elif button_id == "quit-btn":
             self.action_quit()
+        elif button_id == "search-icon-btn":
+            self.action_search_icons()
 
     def action_preview(self) -> None:
         """Generate and show preview of desktop file."""
@@ -254,3 +260,29 @@ class DesktopFileMakerApp(App):
     def action_quit(self) -> None:
         """Quit the application."""
         self.app.exit()
+
+    def action_search_icons(self) -> None:
+        """Search for icons and show selection modal."""
+        # Get search terms from form
+        name = self.query_one("#name-input", Input).value
+        exec_path = self.query_one("#exec-input", Input).value
+
+        # Search for icons
+        try:
+            results = search_icons(name=name, exec_path=exec_path, limit=15)
+
+            if not results:
+                self.notify("No icons found", severity="warning")
+                return
+
+            # Show selection modal
+            def on_icon_selected(icon: Optional[IconResult]) -> None:
+                """Handle icon selection from modal."""
+                if icon:
+                    self.query_one("#icon-input", Input).value = icon.full_name
+                    self.notify(f"Selected: {icon.full_name}", severity="information")
+
+            self.app.push_screen(IconSelectorModal(results), on_icon_selected)
+
+        except Exception as e:
+            self.notify(f"Search failed: {str(e)}", severity="error")
