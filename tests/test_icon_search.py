@@ -4,8 +4,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from src.core.icon_search import (
     IconResult,
-    search_icons_online,
-    search_icons_local,
+    search_images_duckduckgo,
     extract_search_term,
     search_icons,
 )
@@ -16,30 +15,78 @@ class TestIconResult:
 
     def test_icon_result_creation(self):
         """Test creating an IconResult."""
-        result = IconResult("firefox", "mdi", "Firefox browser")
-        assert result.name == "firefox"
-        assert result.collection == "mdi"
-        assert result.description == "Firefox browser"
-        assert result.full_name == "mdi:firefox"
+        result = IconResult(
+            title="Firefox Icon",
+            image_url="https://example.com/firefox.png",
+            thumbnail_url="https://example.com/firefox_thumb.png",
+            source="duckduckgo",
+            width=512,
+            height=512,
+        )
+        assert result.title == "Firefox Icon"
+        assert result.image_url == "https://example.com/firefox.png"
+        assert result.thumbnail_url == "https://example.com/firefox_thumb.png"
+        assert result.source == "duckduckgo"
+        assert result.width == 512
+        assert result.height == 512
+
+    def test_icon_result_display_name(self):
+        """Test display name property."""
+        result = IconResult(
+            title="A very long title that should be truncated to sixty characters max",
+            image_url="https://example.com/image.png",
+            thumbnail_url="https://example.com/thumb.png",
+        )
+        assert len(result.display_name) <= 63  # 60 chars + "..."
+        assert result.display_name.endswith("...")
+
+    def test_icon_result_display_name_short(self):
+        """Test display name with short title."""
+        result = IconResult(
+            title="Short",
+            image_url="https://example.com/image.png",
+            thumbnail_url="https://example.com/thumb.png",
+        )
+        assert result.display_name == "Short"
 
     def test_icon_result_repr(self):
         """Test IconResult string representation."""
-        result = IconResult("firefox", "mdi")
-        assert repr(result) == "IconResult(mdi:firefox)"
+        result = IconResult(
+            title="Firefox",
+            image_url="https://example.com/firefox.png",
+            thumbnail_url="https://example.com/thumb.png",
+        )
+        assert "Firefox" in repr(result)
 
     def test_icon_result_equality(self):
         """Test IconResult equality."""
-        result1 = IconResult("firefox", "mdi")
-        result2 = IconResult("firefox", "mdi")
-        result3 = IconResult("chrome", "mdi")
+        result1 = IconResult(
+            title="Firefox",
+            image_url="https://example.com/firefox.png",
+            thumbnail_url="https://example.com/thumb.png",
+        )
+        result2 = IconResult(
+            title="Firefox",
+            image_url="https://example.com/firefox.png",
+            thumbnail_url="https://example.com/thumb.png",
+        )
+        result3 = IconResult(
+            title="Chrome",
+            image_url="https://example.com/chrome.png",
+            thumbnail_url="https://example.com/thumb.png",
+        )
 
         assert result1 == result2
         assert result1 != result3
 
     def test_icon_result_equality_with_non_result(self):
         """Test IconResult equality with non-IconResult object."""
-        result = IconResult("firefox", "mdi")
-        assert result != "mdi:firefox"
+        result = IconResult(
+            title="Firefox",
+            image_url="https://example.com/firefox.png",
+            thumbnail_url="https://example.com/thumb.png",
+        )
+        assert result != "firefox"
         assert result != None
 
 
@@ -82,247 +129,260 @@ class TestExtractSearchTerm:
         assert term == ""
 
 
-class TestSearchIconsOnline:
-    """Tests for search_icons_online function."""
+class TestSearchImagesDuckDuckGo:
+    """Tests for search_images_duckduckgo function."""
 
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_success(self, mock_get):
-        """Test successful online icon search."""
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            "icons": ["mdi:firefox", "mdi:firefox-box", "simple-icons:firefox"]
-        }
-        mock_get.return_value = mock_response
+    @patch("src.core.icon_search.DDGS")
+    def test_search_images_success(self, mock_ddgs_class):
+        """Test successful image search."""
+        mock_ddgs = MagicMock()
+        mock_ddgs.images.return_value = [
+            {
+                "title": "Firefox Icon",
+                "image": "https://example.com/firefox.png",
+                "thumbnail": "https://example.com/firefox_thumb.png",
+                "width": 512,
+                "height": 512,
+            },
+            {
+                "title": "Firefox Logo",
+                "image": "https://example.com/firefox2.png",
+                "thumbnail": "https://example.com/firefox2_thumb.png",
+                "width": 256,
+                "height": 256,
+            },
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
 
-        results = search_icons_online("firefox", limit=5)
+        results = search_images_duckduckgo("firefox", limit=5)
 
-        assert len(results) == 3
-        assert results[0].full_name == "mdi:firefox"
-        assert results[1].full_name == "mdi:firefox-box"
-        assert results[2].full_name == "simple-icons:firefox"
+        assert len(results) == 2
+        assert results[0].title == "Firefox Icon"
+        assert results[0].image_url == "https://example.com/firefox.png"
+        assert results[1].title == "Firefox Logo"
 
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_respects_limit(self, mock_get):
+    @patch("src.core.icon_search.DDGS")
+    def test_search_images_respects_limit(self, mock_ddgs_class):
         """Test that limit is respected."""
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"icons": [f"mdi:icon{i}" for i in range(20)]}
-        mock_get.return_value = mock_response
+        mock_ddgs = MagicMock()
+        mock_ddgs.images.return_value = [
+            {
+                "title": f"Icon {i}",
+                "image": f"https://example.com/{i}.png",
+                "thumbnail": f"https://example.com/{i}_thumb.png",
+            }
+            for i in range(20)
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
 
-        results = search_icons_online("test", limit=5)
+        results = search_images_duckduckgo("test", limit=5)
 
         assert len(results) == 5
 
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_empty_query(self, mock_get):
+    def test_search_images_empty_query(self):
         """Test with empty query."""
-        results = search_icons_online("", limit=5)
-
+        results = search_images_duckduckgo("", limit=5)
         assert results == []
-        mock_get.assert_not_called()
 
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_timeout(self, mock_get):
-        """Test timeout handling."""
-        import requests
+    @patch("src.core.icon_search.DDGS")
+    def test_search_images_exception(self, mock_ddgs_class):
+        """Test exception handling."""
+        mock_ddgs_class.side_effect = Exception("Network error")
 
-        mock_get.side_effect = requests.Timeout()
-
-        results = search_icons_online("firefox", limit=5)
+        results = search_images_duckduckgo("firefox", limit=5)
 
         assert results == []
 
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_request_error(self, mock_get):
-        """Test request error handling."""
-        import requests
+    @patch("src.core.icon_search.DDGS")
+    def test_search_images_missing_url(self, mock_ddgs_class):
+        """Test handling of results without image URL."""
+        mock_ddgs = MagicMock()
+        mock_ddgs.images.return_value = [
+            {"title": "Icon 1", "image": "https://example.com/1.png"},
+            {"title": "Icon 2", "image": ""},  # Missing URL
+            {"title": "Icon 3", "image": "https://example.com/3.png"},
+        ]
+        mock_ddgs_class.return_value = mock_ddgs
 
-        mock_get.side_effect = requests.RequestException()
+        results = search_images_duckduckgo("test", limit=5)
 
-        results = search_icons_online("firefox", limit=5)
-
-        assert results == []
-
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_json_error(self, mock_get):
-        """Test JSON parsing error handling."""
-        mock_response = MagicMock()
-        mock_response.json.side_effect = ValueError("Invalid JSON")
-        mock_get.return_value = mock_response
-
-        results = search_icons_online("firefox", limit=5)
-
-        assert results == []
-
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_missing_icons_key(self, mock_get):
-        """Test handling of missing 'icons' key."""
-        mock_response = MagicMock()
-        mock_response.json.return_value = {}
-        mock_get.return_value = mock_response
-
-        results = search_icons_online("firefox", limit=5)
-
-        assert results == []
-
-    @patch("src.core.icon_search.requests.get")
-    def test_search_icons_online_malformed_icon_name(self, mock_get):
-        """Test handling of malformed icon names."""
-        mock_response = MagicMock()
-        mock_response.json.return_value = {
-            "icons": [
-                "mdi:firefox",
-                "invalid_icon_without_colon",
-                "simple-icons:chrome",
-            ]
-        }
-        mock_get.return_value = mock_response
-
-        results = search_icons_online("test", limit=5)
-
-        assert len(results) == 3
-        # Malformed icon should have "custom" as collection
-        assert results[1].collection == "custom"
-        assert results[1].name == "invalid_icon_without_colon"
-
-
-class TestSearchIconsLocal:
-    """Tests for search_icons_local function."""
-
-    def test_search_icons_local_empty_query(self):
-        """Test with empty query."""
-        results = search_icons_local("", limit=5)
-        assert results == []
-
-    def test_search_icons_local_whitespace_query(self):
-        """Test with whitespace-only query."""
-        results = search_icons_local("   ", limit=5)
-        assert results == []
-
-    def test_search_icons_local_returns_list(self):
-        """Test that function returns a list."""
-        results = search_icons_local("application", limit=5)
-        assert isinstance(results, list)
-
-    def test_search_icons_local_respects_limit(self):
-        """Test that limit is respected."""
-        results = search_icons_local("application", limit=3)
-        assert len(results) <= 3
-
-    def test_search_icons_local_returns_icon_results(self):
-        """Test that results are IconResult objects."""
-        results = search_icons_local("application", limit=5)
-        for result in results:
-            assert isinstance(result, IconResult)
-            assert result.collection == "local"
+        # Should only include results with image URLs
+        assert len(results) == 2
+        assert results[0].title == "Icon 1"
+        assert results[1].title == "Icon 3"
 
 
 class TestSearchIcons:
     """Tests for combined search_icons function."""
 
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_online_first(self, mock_local, mock_online):
-        """Test that online search is tried first."""
-        mock_online.return_value = [
-            IconResult("firefox", "mdi"),
-            IconResult("firefox-box", "mdi"),
+    @patch("src.core.icon_search.search_github_repos")
+    @patch("src.core.icon_search.search_simple_icons")
+    @patch("src.core.icon_search.search_iconify")
+    @patch("src.core.icon_search.search_images_duckduckgo")
+    def test_search_icons_with_name(
+        self, mock_ddg, mock_iconify, mock_simple, mock_github
+    ):
+        """Test search with name parameter."""
+        mock_github.return_value = []
+        mock_simple.return_value = []
+        mock_iconify.return_value = []
+        mock_ddg.return_value = [
+            IconResult(
+                "Firefox Icon",
+                "https://example.com/firefox.png",
+                "https://example.com/thumb.png",
+            )
         ]
-        mock_local.return_value = []
-
-        results = search_icons(name="Firefox", online_first=True)
-
-        assert len(results) == 2
-        mock_online.assert_called_once()
-
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_local_first(self, mock_local, mock_online):
-        """Test that local search is tried first when online_first=False."""
-        mock_local.return_value = [IconResult("firefox", "local")]
-        mock_online.return_value = []
-
-        results = search_icons(name="Firefox", online_first=False)
-
-        assert len(results) == 1
-        mock_local.assert_called_once()
-
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_combines_results(self, mock_local, mock_online):
-        """Test that results from both sources are combined."""
-        mock_online.return_value = [IconResult("firefox", "mdi")]
-        mock_local.return_value = [IconResult("firefox", "local")]
-
-        results = search_icons(name="Firefox")
-
-        assert len(results) == 2
-
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_deduplicates(self, mock_local, mock_online):
-        """Test that duplicate results are removed."""
-        mock_online.return_value = [IconResult("firefox", "mdi")]
-        mock_local.return_value = [IconResult("firefox", "mdi")]
 
         results = search_icons(name="Firefox")
 
         assert len(results) == 1
+        # GitHub is disabled by default
+        mock_github.assert_not_called()
+        mock_simple.assert_called_once_with("Firefox", limit=3)
+        mock_iconify.assert_called_once_with("Firefox", limit=5)
+        # DDG gets called with calculated remaining limit
+        mock_ddg.assert_called_once()
 
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_respects_limit(self, mock_local, mock_online):
-        """Test that limit is respected."""
-        mock_online.return_value = [IconResult(f"icon{i}", "mdi") for i in range(20)]
-        mock_local.return_value = []
+    @patch("src.core.icon_search.search_github_repos")
+    @patch("src.core.icon_search.search_simple_icons")
+    @patch("src.core.icon_search.search_iconify")
+    @patch("src.core.icon_search.search_images_duckduckgo")
+    def test_search_icons_with_exec(
+        self, mock_ddg, mock_iconify, mock_simple, mock_github
+    ):
+        """Test search with exec_path parameter."""
+        mock_github.return_value = []
+        mock_simple.return_value = []
+        mock_iconify.return_value = []
+        mock_ddg.return_value = [
+            IconResult(
+                "Firefox Icon",
+                "https://example.com/firefox.png",
+                "https://example.com/thumb.png",
+            )
+        ]
 
-        results = search_icons(name="test", limit=5)
+        results = search_icons(exec_path="/usr/bin/firefox")
 
-        assert len(results) == 5
+        assert len(results) == 1
+        # Should extract "firefox" from path
+        mock_github.assert_not_called()
+        mock_simple.assert_called_once()
+        mock_iconify.assert_called_once()
+        mock_ddg.assert_called_once()
 
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_empty_query(self, mock_local, mock_online):
-        """Test with empty query."""
+    @patch("src.core.icon_search.search_github_repos")
+    @patch("src.core.icon_search.search_simple_icons")
+    @patch("src.core.icon_search.search_iconify")
+    @patch("src.core.icon_search.search_images_duckduckgo")
+    def test_search_icons_with_query(
+        self, mock_ddg, mock_iconify, mock_simple, mock_github
+    ):
+        """Test search with direct query parameter."""
+        mock_github.return_value = []
+        mock_simple.return_value = []
+        mock_iconify.return_value = []
+        mock_ddg.return_value = []
+
+        search_icons(query="custom search")
+
+        mock_github.assert_not_called()
+        mock_simple.assert_called_once_with("custom search", limit=3)
+        mock_iconify.assert_called_once_with("custom search", limit=5)
+        mock_ddg.assert_called_once()
+
+    @patch("src.core.icon_search.search_github_repos")
+    @patch("src.core.icon_search.search_simple_icons")
+    @patch("src.core.icon_search.search_iconify")
+    @patch("src.core.icon_search.search_images_duckduckgo")
+    def test_search_icons_empty_inputs(
+        self, mock_ddg, mock_iconify, mock_simple, mock_github
+    ):
+        """Test with empty inputs."""
         results = search_icons(query="", name="", exec_path="")
 
         assert results == []
-        mock_online.assert_not_called()
-        mock_local.assert_not_called()
+        mock_ddg.assert_not_called()
+        mock_iconify.assert_not_called()
+        mock_simple.assert_not_called()
+        mock_github.assert_not_called()
 
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_uses_direct_query(self, mock_local, mock_online):
-        """Test that direct query parameter is used."""
-        mock_online.return_value = []
-        mock_local.return_value = []
+    @patch("src.core.icon_search.search_github_repos")
+    @patch("src.core.icon_search.search_simple_icons")
+    @patch("src.core.icon_search.search_iconify")
+    @patch("src.core.icon_search.search_images_duckduckgo")
+    def test_search_icons_respects_limit(
+        self, mock_ddg, mock_iconify, mock_simple, mock_github
+    ):
+        """Test that limit parameter is passed through."""
+        mock_github.return_value = []
+        mock_simple.return_value = []
+        mock_iconify.return_value = []
+        mock_ddg.return_value = []
 
-        search_icons(query="custom-query", name="ignored", exec_path="ignored")
+        search_icons(name="firefox", limit=10)
 
-        # Check that the search was called with the direct query
-        mock_online.assert_called_once()
-        call_args = mock_online.call_args
-        assert call_args[0][0] == "custom-query"
+        mock_github.assert_not_called()
+        mock_simple.assert_called_once_with("firefox", limit=3)
+        mock_iconify.assert_called_once_with("firefox", limit=5)
+        # DDG gets called with remaining limit
+        mock_ddg.assert_called_once()
 
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_fallback_to_online(self, mock_local, mock_online):
-        """Test fallback to online search when local_first=False and local returns nothing."""
-        mock_local.return_value = []
-        mock_online.return_value = [IconResult("firefox", "mdi")]
 
-        results = search_icons(name="Firefox", online_first=False)
+class TestIconDownload:
+    """Tests for icon download functionality."""
 
-        assert len(results) == 1
-        mock_online.assert_called_once()
+    @patch("src.core.icon_search.requests.get")
+    def test_download_image_success(self, mock_get, tmp_path):
+        """Test successful image download."""
+        mock_response = MagicMock()
+        mock_response.iter_content = lambda chunk_size: [b"image data"]
+        mock_get.return_value = mock_response
 
-    @patch("src.core.icon_search.search_icons_online")
-    @patch("src.core.icon_search.search_icons_local")
-    def test_search_icons_exception_handling(self, mock_local, mock_online):
-        """Test that exceptions are handled gracefully."""
-        mock_online.side_effect = Exception("API error")
-        mock_local.return_value = [IconResult("firefox", "local")]
+        result = IconResult(
+            "Firefox Icon",
+            "https://example.com/firefox.png",
+            "https://example.com/thumb.png",
+        )
 
-        results = search_icons(name="Firefox")
+        downloaded = result.download_image(tmp_path)
 
-        # Should still return local results
-        assert len(results) == 1
+        assert downloaded is not None
+        assert downloaded.exists()
+        assert "Firefox Icon" in downloaded.name
+
+    @patch("src.core.icon_search.requests.get")
+    def test_download_image_failure(self, mock_get, tmp_path):
+        """Test failed image download."""
+        mock_get.side_effect = Exception("Network error")
+
+        result = IconResult(
+            "Firefox Icon",
+            "https://example.com/firefox.png",
+            "https://example.com/thumb.png",
+        )
+
+        downloaded = result.download_image(tmp_path)
+
+        assert downloaded is None
+
+    @patch("src.core.icon_search.requests.get")
+    def test_download_image_sets_local_path(self, mock_get, tmp_path):
+        """Test that download sets local_path attribute."""
+        mock_response = MagicMock()
+        mock_response.iter_content = lambda chunk_size: [b"image data"]
+        mock_get.return_value = mock_response
+
+        result = IconResult(
+            "Firefox Icon",
+            "https://example.com/firefox.png",
+            "https://example.com/thumb.png",
+        )
+
+        assert result.local_path is None
+
+        downloaded = result.download_image(tmp_path)
+
+        assert result.local_path == downloaded
+        assert result.full_name == str(downloaded)
