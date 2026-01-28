@@ -267,12 +267,23 @@ class DesktopFileMakerApp(App):
         name = self.query_one("#name-input", Input).value
         exec_path = self.query_one("#exec-input", Input).value
 
+        # Check if we have something to search for
+        if not name.strip() and not exec_path.strip():
+            self.notify(
+                "Enter an app name or executable path to search for icons",
+                severity="warning",
+            )
+            return
+
         # Search for icons
         try:
             results = search_icons(name=name, exec_path=exec_path, limit=15)
 
             if not results:
-                self.notify("No icons found", severity="warning")
+                self.notify(
+                    f"No icons found for '{name or exec_path}'",
+                    severity="warning",
+                )
                 return
 
             # Show selection modal
