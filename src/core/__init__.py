@@ -37,10 +37,9 @@ from .icon_handler import (
 )
 from .icon_search import (
     search_icons,
-    search_icons_online,
-    search_icons_local,
     extract_search_term,
     IconResult,
+    search_images_duckduckgo,
 )
 
 __all__ = [
@@ -77,8 +76,7 @@ __all__ = [
     "get_common_icon_names",
     # icon_search
     "search_icons",
-    "search_icons_online",
-    "search_icons_local",
     "extract_search_term",
     "IconResult",
+    "search_images_duckduckgo",
 ]

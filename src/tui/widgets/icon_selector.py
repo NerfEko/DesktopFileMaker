@@ -1,5 +1,5 @@
 """
-Icon selector modal widget for choosing icons from search results.
+Icon selector modal widget for choosing icons from image search results.
 
 Displays search results in a popup with keyboard and mouse navigation.
 """
@@ -10,11 +10,12 @@ from textual.widgets import Static, Button, Label
 from textual.screen import ModalScreen
 from textual.binding import Binding
 from typing import Optional, List
+from pathlib import Path
 from src.core.icon_search import IconResult
 
 
 class IconSelectorModal(ModalScreen):
-    """Modal screen for selecting an icon from search results."""
+    """Modal screen for selecting an icon from image search results."""
 
     BINDINGS = [
         Binding("up", "select_previous", "Previous"),
@@ -29,8 +30,9 @@ class IconSelectorModal(ModalScreen):
     }
 
     #icon-selector-container {
-        width: 60;
+        width: 70;
         height: auto;
+        max-height: 20;
         border: solid $accent;
         background: $surface;
     }
@@ -43,15 +45,20 @@ class IconSelectorModal(ModalScreen):
         color: $text;
     }
 
+    #icon-list-container {
+        height: auto;
+        max-height: 15;
+        overflow-y: scroll;
+    }
+
     #icon-list {
         height: auto;
         width: 1fr;
-        border: solid $primary;
     }
 
     .icon-item {
         width: 1fr;
-        height: 1;
+        height: auto;
         padding: 0 1;
     }
 
@@ -62,7 +69,7 @@ class IconSelectorModal(ModalScreen):
 
     #icon-selector-footer {
         dock: bottom;
-        height: 2;
+        height: 3;
         border-top: solid $accent;
         padding: 1;
     }
@@ -72,40 +79,47 @@ class IconSelectorModal(ModalScreen):
     }
     """
 
-    def __init__(self, results: List[IconResult]):
+    def __init__(self, results: List[IconResult], download_dir: Optional[Path] = None):
         """
         Initialize icon selector.
 
         Args:
             results: List of IconResult objects to display
+            download_dir: Directory to download selected icon to
         """
         super().__init__()
         self.results = results
+        self.download_dir = download_dir or Path.home() / ".local" / "share" / "icons"
         self.selected_index = 0
         self.selected_icon: Optional[IconResult] = None
 
     def compose(self) -> ComposeResult:
         """Compose the modal layout."""
         with Container(id="icon-selector-container"):
-            yield Label("Select Icon", id="icon-selector-title")
+            yield Label(
+                f"Select Icon ({len(self.results)} results)", id="icon-selector-title"
+            )
 
-            with Vertical(id="icon-list"):
-                for i, result in enumerate(self.results):
-                    # Format: "collection:name"
-                    label_text = f"{result.full_name}"
-                    if result.description:
-                        label_text += f" - {result.description}"
+            with Container(id="icon-list-container"):
+                with Vertical(id="icon-list"):
+                    for i, result in enumerate(self.results):
+                        # Format: title (dimensions)
+                        label_text = result.display_name
+                        if result.width and result.height:
+                            label_text += f" ({result.width}x{result.height})"
 
-                    yield Label(
-                        label_text,
-                        id=f"icon-item-{i}",
-                        classes="icon-item" + (" selected" if i == 0 else ""),
-                    )
+                        yield Label(
+                            label_text,
+                            id=f"icon-item-{i}",
+                            classes="icon-item" + (" selected" if i == 0 else ""),
+                        )
 
-            with Horizontal(id="icon-selector-footer"):
-                yield Label("↑↓ Navigate")
-                yield Label("Enter Select")
-                yield Label("Esc Cancel")
+            with Vertical(id="icon-selector-footer"):
+                with Horizontal():
+                    yield Label("↑↓ Navigate")
+                    yield Label("Enter Select")
+                    yield Label("Esc Cancel")
+                yield Label("Selected image will be downloaded as icon", markup=False)
 
     def on_mount(self) -> None:
         """Initialize on mount."""
@@ -128,6 +142,9 @@ class IconSelectorModal(ModalScreen):
         new_item = self.query_one(f"#icon-item-{self.selected_index}", Label)
         new_item.add_class("selected")
 
+        # Scroll into view
+        new_item.scroll_visible()
+
         self.selected_icon = self.results[self.selected_index]
 
     def action_select_next(self) -> None:
@@ -146,11 +163,15 @@ class IconSelectorModal(ModalScreen):
         new_item = self.query_one(f"#icon-item-{self.selected_index}", Label)
         new_item.add_class("selected")
 
+        # Scroll into view
+        new_item.scroll_visible()
+
         self.selected_icon = self.results[self.selected_index]
 
     def action_select_icon(self) -> None:
         """Select the current icon and close modal."""
         if self.selected_icon:
+            # Download the image
             self.dismiss(self.selected_icon)
 
     def action_cancel(self) -> None:

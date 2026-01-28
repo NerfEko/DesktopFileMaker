@@ -275,13 +275,17 @@ class DesktopFileMakerApp(App):
             )
             return
 
-        # Search for icons
+        # Show searching notification
+        self.notify(f"Searching for icons...", severity="information")
+
+        # Search for icons (images)
         try:
-            results = search_icons(name=name, exec_path=exec_path, limit=15)
+            results = search_icons(name=name, exec_path=exec_path, limit=20)
 
             if not results:
+                # This should rarely happen since we're searching the internet
                 self.notify(
-                    f"No icons found for '{name or exec_path}'",
+                    f"No images found for '{name or exec_path}'",
                     severity="warning",
                 )
                 return
@@ -290,8 +294,35 @@ class DesktopFileMakerApp(App):
             def on_icon_selected(icon: Optional[IconResult]) -> None:
                 """Handle icon selection from modal."""
                 if icon:
-                    self.query_one("#icon-input", Input).value = icon.full_name
-                    self.notify(f"Selected: {icon.full_name}", severity="information")
+                    self.notify("Downloading image...", severity="information")
+
+                    # Download the image
+                    from pathlib import Path
+
+                    download_dir = (
+                        Path.home()
+                        / ".local"
+                        / "share"
+                        / "icons"
+                        / "hicolor"
+                        / "512x512"
+                        / "apps"
+                    )
+                    download_dir.mkdir(parents=True, exist_ok=True)
+
+                    downloaded_path = icon.download_image(download_dir)
+
+                    if downloaded_path:
+                        # Set the Icon field to the downloaded file path
+                        self.query_one("#icon-input", Input).value = str(
+                            downloaded_path
+                        )
+                        self.notify(
+                            f"Icon downloaded: {downloaded_path.name}",
+                            severity="information",
+                        )
+                    else:
+                        self.notify("Failed to download image", severity="error")
 
             self.app.push_screen(IconSelectorModal(results), on_icon_selected)
 
