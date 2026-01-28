@@ -1,6 +1,6 @@
 """Main TUI application for desktop file maker."""
 
-from textual.app import ComposeResult, Screen
+from textual.app import ComposeResult, App
 from textual.containers import Container, Vertical, Horizontal
 from textual.widgets import (
     Header,
@@ -23,7 +23,7 @@ from src.core import (
 )
 
 
-class DesktopFileMakerApp(Screen):
+class DesktopFileMakerApp(App):
     """Main application screen for creating desktop files."""
 
     BINDINGS = [
