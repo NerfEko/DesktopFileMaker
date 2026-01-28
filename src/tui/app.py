@@ -20,6 +20,7 @@ from src.core import (
     validate_all_fields,
     save_desktop_file,
     get_user_applications_dir,
+    get_icon_suggestions_for_app,
 )
 
 
@@ -109,7 +110,9 @@ class DesktopFileMakerApp(App):
                 # Icon field
                 with Horizontal(classes="form-group"):
                     yield Label("Icon:", classes="form-label")
-                    yield Input(id="icon-input", placeholder="Icon name or path")
+                    with Horizontal():
+                        yield Input(id="icon-input", placeholder="Icon name or path")
+                        yield Button("Search", id="icon-search-btn", variant="primary")
 
                 # Comment field
                 with Horizontal(classes="form-group"):
@@ -164,6 +167,8 @@ class DesktopFileMakerApp(App):
             self.action_clear()
         elif button_id == "quit-btn":
             self.action_quit()
+        elif button_id == "icon-search-btn":
+            self.action_search_icons()
 
     def action_preview(self) -> None:
         """Generate and show preview of desktop file."""
@@ -250,6 +255,33 @@ class DesktopFileMakerApp(App):
         self.query_one("#categories-input", Input).value = ""
         self.query_one("#terminal-select", Select).value = False
         self.query_one("#preview", TextArea).text = ""
+
+    def action_search_icons(self) -> None:
+        """Search for icons based on application name."""
+        name = self.query_one("#name-input", Input).value
+
+        if not name:
+            self.notify("Please enter an application name first", severity="warning")
+            return
+
+        # Get icon suggestions
+        suggestions = get_icon_suggestions_for_app(name, limit=5)
+
+        if not suggestions:
+            self.notify("No icon suggestions found", severity="warning")
+            return
+
+        # Display suggestions
+        message = "Icon suggestions:\n\n"
+        for i, icon in enumerate(suggestions, 1):
+            message += f"{i}. {icon.name} ({icon.source})\n"
+
+        message += "\nEnter the icon name in the Icon field above"
+        self.notify(message, severity="information")
+
+        # Auto-fill with first suggestion
+        if suggestions:
+            self.query_one("#icon-input", Input).value = suggestions[0].name
 
     def action_quit(self) -> None:
         """Quit the application."""

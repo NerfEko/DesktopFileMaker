@@ -35,6 +35,14 @@ from .icon_handler import (
     copy_icon_to_user_share,
     get_common_icon_names,
 )
+from .icon_search import (
+    IconResult,
+    search_icons,
+    search_icons_system,
+    search_icons_freedesktop,
+    get_icon_suggestions_for_app,
+    validate_icon_url,
+)
 
 __all__ = [
     # desktop_file
@@ -68,4 +76,11 @@ __all__ = [
     "get_icon_suggestions",
     "copy_icon_to_user_share",
     "get_common_icon_names",
+    # icon_search
+    "IconResult",
+    "search_icons",
+    "search_icons_system",
+    "search_icons_freedesktop",
+    "get_icon_suggestions_for_app",
+    "validate_icon_url",
 ]
