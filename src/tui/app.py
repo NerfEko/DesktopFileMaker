@@ -336,9 +336,21 @@ class DesktopFileMakerApp(App):
         # Show searching notification
         self.notify(f"Searching for icons...", severity="information")
 
-        # Search for icons (images)
+        # Search for icons (images) with timeout protection
         try:
-            results = search_icons(name=name, exec_path=exec_path, limit=40)
+            import signal
+            
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Search timed out")
+            
+            # Set a 10 second timeout for the entire search
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(10)
+            
+            try:
+                results = search_icons(name=name, exec_path=exec_path, limit=40)
+            finally:
+                signal.alarm(0)  # Cancel the timeout
 
             if not results:
                 # This should rarely happen since we're searching the internet
@@ -367,5 +379,7 @@ class DesktopFileMakerApp(App):
 
             self.app.push_screen(IconSelectorModal(results), on_icon_selected)
 
+        except TimeoutError:
+            self.notify("Search timed out. Try with a simpler search term.", severity="error")
         except Exception as e:
             self.notify(f"Search failed: {str(e)}", severity="error")

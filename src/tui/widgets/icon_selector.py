@@ -160,9 +160,7 @@ class IconSelectorModal(ModalScreen):
                     label_text += f" ({result.file_type})"
 
                 # Add color coding based on source
-                if result.source == "github":
-                    label_text = f"[green]{label_text}[/green]"
-                elif result.source == "simpleicons":
+                if result.source == "simpleicons":
                     label_text = f"[cyan]{label_text}[/cyan]"
                 elif result.source == "iconify":
                     label_text = f"[dodgerblue]{label_text}[/dodgerblue]"
@@ -174,7 +172,6 @@ class IconSelectorModal(ModalScreen):
 
             # Color key
             yield Label(
-                "[green]Green[/green]: GitHub (official repos) | "
                 "[cyan]Cyan[/cyan]: SimpleIcons | "
                 "[dodgerblue]Blue[/dodgerblue]: Iconify | "
                 "White: DuckDuckGo",
@@ -323,7 +320,6 @@ class IconSelectorModal(ModalScreen):
         """Show help dialog with color key."""
         help_message = (
             "COLOR CODING:\n"
-            "• Green: GitHub (official repository icons)\n"
             "• Cyan: SimpleIcons (curated brand icons)\n"
             "• Blue: Iconify (large icon collection)\n"
             "• White: DuckDuckGo (web search results)"

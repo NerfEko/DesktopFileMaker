@@ -215,15 +215,13 @@ class TestSearchImagesDuckDuckGo:
 class TestSearchIcons:
     """Tests for combined search_icons function."""
 
-    @patch("src.core.icon_search.search_github_repos")
     @patch("src.core.icon_search.search_simple_icons")
     @patch("src.core.icon_search.search_iconify")
     @patch("src.core.icon_search.search_images_duckduckgo")
     def test_search_icons_with_name(
-        self, mock_ddg, mock_iconify, mock_simple, mock_github
+        self, mock_ddg, mock_iconify, mock_simple
     ):
         """Test search with name parameter."""
-        mock_github.return_value = []
         mock_simple.return_value = []
         mock_iconify.return_value = []
         mock_ddg.return_value = [
@@ -237,22 +235,17 @@ class TestSearchIcons:
         results = search_icons(name="Firefox")
 
         assert len(results) == 1
-        # GitHub is disabled by default
-        mock_github.assert_not_called()
-        mock_simple.assert_called_once_with("Firefox", limit=3)
-        mock_iconify.assert_called_once_with("Firefox", limit=5)
-        # DDG gets called with calculated remaining limit
+        mock_simple.assert_called_once_with("Firefox", limit=5)
+        mock_iconify.assert_called_once_with("Firefox", limit=8)
         mock_ddg.assert_called_once()
 
-    @patch("src.core.icon_search.search_github_repos")
     @patch("src.core.icon_search.search_simple_icons")
     @patch("src.core.icon_search.search_iconify")
     @patch("src.core.icon_search.search_images_duckduckgo")
     def test_search_icons_with_exec(
-        self, mock_ddg, mock_iconify, mock_simple, mock_github
+        self, mock_ddg, mock_iconify, mock_simple
     ):
         """Test search with exec_path parameter."""
-        mock_github.return_value = []
         mock_simple.return_value = []
         mock_iconify.return_value = []
         mock_ddg.return_value = [
@@ -266,68 +259,74 @@ class TestSearchIcons:
         results = search_icons(exec_path="/usr/bin/firefox")
 
         assert len(results) == 1
-        # Should extract "firefox" from path
-        mock_github.assert_not_called()
+        # Should extract "firefox" from path and search for it
         mock_simple.assert_called_once()
         mock_iconify.assert_called_once()
         mock_ddg.assert_called_once()
 
-    @patch("src.core.icon_search.search_github_repos")
     @patch("src.core.icon_search.search_simple_icons")
     @patch("src.core.icon_search.search_iconify")
     @patch("src.core.icon_search.search_images_duckduckgo")
     def test_search_icons_with_query(
-        self, mock_ddg, mock_iconify, mock_simple, mock_github
+        self, mock_ddg, mock_iconify, mock_simple
     ):
         """Test search with direct query parameter."""
-        mock_github.return_value = []
         mock_simple.return_value = []
         mock_iconify.return_value = []
         mock_ddg.return_value = []
 
         search_icons(query="custom search")
 
-        mock_github.assert_not_called()
-        mock_simple.assert_called_once_with("custom search", limit=3)
-        mock_iconify.assert_called_once_with("custom search", limit=5)
+        mock_simple.assert_called_once_with("custom search", limit=5)
+        mock_iconify.assert_called_once_with("custom search", limit=8)
         mock_ddg.assert_called_once()
 
-    @patch("src.core.icon_search.search_github_repos")
-    @patch("src.core.icon_search.search_simple_icons")
-    @patch("src.core.icon_search.search_iconify")
-    @patch("src.core.icon_search.search_images_duckduckgo")
-    def test_search_icons_empty_inputs(
-        self, mock_ddg, mock_iconify, mock_simple, mock_github
-    ):
+    def test_search_icons_empty_inputs(self):
         """Test with empty inputs."""
-        results = search_icons(query="", name="", exec_path="")
-
+        results = search_icons(name="", exec_path="")
         assert results == []
-        mock_ddg.assert_not_called()
-        mock_iconify.assert_not_called()
-        mock_simple.assert_not_called()
-        mock_github.assert_not_called()
 
-    @patch("src.core.icon_search.search_github_repos")
     @patch("src.core.icon_search.search_simple_icons")
     @patch("src.core.icon_search.search_iconify")
     @patch("src.core.icon_search.search_images_duckduckgo")
     def test_search_icons_respects_limit(
-        self, mock_ddg, mock_iconify, mock_simple, mock_github
+        self, mock_ddg, mock_iconify, mock_simple
     ):
         """Test that limit parameter is passed through."""
-        mock_github.return_value = []
         mock_simple.return_value = []
         mock_iconify.return_value = []
         mock_ddg.return_value = []
 
         search_icons(name="firefox", limit=10)
 
-        mock_github.assert_not_called()
-        mock_simple.assert_called_once_with("firefox", limit=3)
-        mock_iconify.assert_called_once_with("firefox", limit=5)
-        # DDG gets called with remaining limit
+        mock_simple.assert_called_once_with("firefox", limit=5)
+        mock_iconify.assert_called_once_with("firefox", limit=8)
         mock_ddg.assert_called_once()
+
+    @patch("src.core.icon_search.search_simple_icons")
+    @patch("src.core.icon_search.search_iconify")
+    @patch("src.core.icon_search.search_images_duckduckgo")
+    def test_search_icons_github_disabled(
+        self, mock_ddg, mock_iconify, mock_simple
+    ):
+        """Test with GitHub search disabled."""
+        mock_simple.return_value = []
+        mock_iconify.return_value = []
+        mock_ddg.return_value = [
+            IconResult(
+                "Firefox Icon",
+                "https://example.com/firefox.png",
+                "https://example.com/thumb.png",
+            )
+        ]
+
+        results = search_icons(name="Firefox", include_github=False)
+
+        assert len(results) == 1
+        mock_simple.assert_called_once_with("Firefox", limit=5)
+        mock_iconify.assert_called_once_with("Firefox", limit=8)
+        mock_ddg.assert_called_once()
+
 
 
 class TestIconDownload:

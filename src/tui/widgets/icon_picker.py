@@ -6,7 +6,6 @@ from textual.widgets.option_list import Option
 from textual.binding import Binding
 from src.core.icon_search import (
     search_icons,
-    get_icon_suggestions_for_app,
     IconResult,
 )
 
@@ -60,11 +59,11 @@ class IconPickerWidget(Container):
         Args:
             query: Search query
         """
-        # Get suggestions
+        # Get suggestions using search_icons function
         if query:
-            suggestions = get_icon_suggestions_for_app(query, limit=8)
+            suggestions = search_icons(name=query, limit=8)
         else:
-            suggestions = search_icons("application", limit=8)
+            suggestions = search_icons(name="application", limit=8)
 
         # Update list
         icon_list = self.query_one("#icon-list", OptionList)
@@ -72,8 +71,8 @@ class IconPickerWidget(Container):
 
         for icon in suggestions:
             # Display name with source
-            display_name = f"{icon.name} ({icon.source})"
-            option = Option(display_name, id=icon.name)
+            display_name = f"{icon.display_name} ({icon.source})"
+            option = Option(display_name, id=icon.display_name)
             icon_list.add_option(option)
 
         # Store icons for later retrieval

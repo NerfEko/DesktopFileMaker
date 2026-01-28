@@ -1,10 +1,12 @@
 """
 Icon search functionality using multiple sources.
 
-Hybrid approach:
-1. Try Iconify API (official, curated icons)
-2. Fallback to DuckDuckGo with improved queries
-3. Score results for recency and authenticity
+Multi-source approach:
+1. SimpleIcons (curated brand icons)
+2. Iconify API (large curated icon collection)
+3. DuckDuckGo (web search with intelligent queries)
+
+All results are scored and ranked by relevance and quality.
 """
 
 import requests
@@ -75,7 +77,13 @@ class IconResult:
 
         # Source-based scoring (curated sources get highest priority)
         if self.source == "github":
+            # Base GitHub score
             score += 600  # Official repo icons are most authoritative
+            
+            # Extra points for file-specific GitHub results
+            if "official repo" in title_lower or "primary" in title_lower:
+                score += 150  # Boost for file-specific search results
+                
         elif self.source == "simpleicons":
             score += 550  # SimpleIcons is well-maintained and current
         elif self.source == "iconify":
@@ -84,6 +92,8 @@ class IconResult:
         # Positive signals (current/official)
         if "official" in title_lower:
             score += 100
+        if "primary" in title_lower:
+            score += 80
         if any(year in title_lower for year in ["2024", "2025", "2026"]):
             score += 100
         if "current" in title_lower:
@@ -348,164 +358,13 @@ def search_simple_icons(app_name: str, limit: int = 3) -> List[IconResult]:
         return []
 
 
-def search_github_repos(app_name: str, limit: int = 3) -> List[IconResult]:
-    """
-    Search for official icons from GitHub repositories.
 
-    Uses web search to find raw.githubusercontent.com URLs for icon files
-    from official repositories.
 
-    Args:
-        app_name: Application name (e.g., "firefox", "vscode")
-        limit: Maximum number of results
 
-    Returns:
-        List of IconResult objects from GitHub repos
-    """
-    if not app_name or not app_name.strip():
-        return []
 
-    try:
-        search_term = app_name.strip().lower()
-        results = []
 
-        # Use DuckDuckGo to find GitHub raw URLs for icons
-        # This avoids GitHub API authentication requirements
-        ddgs = DDGS()
 
-        # Search specifically for icon files on GitHub
-        queries = [
-            f"site:raw.githubusercontent.com {search_term} icon.png",
-            f"site:raw.githubusercontent.com {search_term} logo.svg",
-            f"site:raw.githubusercontent.com {search_term}/main/icons",
-        ]
 
-        seen_urls = set()
-
-        for query in queries:
-            if len(results) >= limit:
-                break
-
-            try:
-                search_results = ddgs.text(query, max_results=3)
-
-                for result in search_results:
-                    if len(results) >= limit:
-                        break
-
-                    url = result.get("href", "")
-                    title = result.get("title", "")
-
-                    # Filter for actual image URLs
-                    if "raw.githubusercontent.com" in url and url not in seen_urls:
-                        # Check if it's an image file
-                        if any(
-                            ext in url.lower()
-                            for ext in [".png", ".svg", ".jpg", ".jpeg"]
-                        ):
-                            seen_urls.add(url)
-
-                            # Extract repo name from URL
-                            repo_match = url.split("raw.githubusercontent.com/")
-                            repo_name = (
-                                repo_match[1].split("/")[0]
-                                if len(repo_match) > 1
-                                else "GitHub"
-                            )
-
-                            results.append(
-                                IconResult(
-                                    title=f"{app_name.title()} Icon ({repo_name} Repo)",
-                                    image_url=url,
-                                    thumbnail_url=url,
-                                    source="github",
-                                    width=512,
-                                    height=512,
-                                )
-                            )
-
-            except Exception:
-                continue
-
-        return results
-
-    except Exception:
-        return []
-
-    try:
-        search_term = app_name.strip().lower()
-        results = []
-
-        # Common icon paths in repos
-        icon_paths = [
-            "icons",
-            "assets",
-            "resources",
-            "media",
-            "brand",
-            "logos",
-            "images",
-        ]
-
-        # GitHub Code Search API
-        # Search for icon files in repos matching the app name
-        headers = {
-            "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "Mozilla/5.0",
-        }
-
-        for path in icon_paths:
-            if len(results) >= limit:
-                break
-
-            try:
-                # Search for PNG/SVG files in common icon directories
-                query = f"{search_term} filename:icon OR filename:logo extension:png OR extension:svg path:{path}"
-                api_url = f"https://api.github.com/search/code?q={query}&per_page=3"
-
-                response = requests.get(api_url, headers=headers, timeout=5)
-
-                if response.status_code == 200:
-                    data = response.json()
-                    items = data.get("items", [])
-
-                    for item in items[:limit]:
-                        if len(results) >= limit:
-                            break
-
-                        # Get raw file URL
-                        repo_full = item.get("repository", {}).get("full_name", "")
-                        file_path = item.get("path", "")
-
-                        if repo_full and file_path:
-                            # Raw GitHub URL
-                            raw_url = f"https://raw.githubusercontent.com/{repo_full}/main/{file_path}"
-
-                            # Try 'main' branch, fallback to 'master'
-                            test_response = requests.head(
-                                raw_url, timeout=2, headers=headers
-                            )
-                            if test_response.status_code == 404:
-                                raw_url = f"https://raw.githubusercontent.com/{repo_full}/master/{file_path}"
-
-                            results.append(
-                                IconResult(
-                                    title=f"{item.get('name', 'Icon')} ({repo_full})",
-                                    image_url=raw_url,
-                                    thumbnail_url=raw_url,
-                                    source="github",
-                                    width=512,
-                                    height=512,
-                                )
-                            )
-
-            except Exception:
-                continue
-
-        return results
-
-    except Exception:
-        return []
 
 
 def search_images_duckduckgo(query: str, limit: int = 15) -> List[IconResult]:
@@ -621,24 +480,23 @@ def search_icons(
     name: str = "",
     exec_path: str = "",
     limit: int = 15,
-    include_github: bool = False,
+    include_github: bool = False,  # Disabled GitHub functionality
 ) -> List[IconResult]:
     """
     Search for icons using multi-source hybrid approach.
 
     Strategy:
-    1. GitHub repos (optional, slow - direct from source)
-    2. SimpleIcons (curated brand icons)
-    3. Iconify API (large curated collection)
-    4. DuckDuckGo (fallback with improved queries)
-    5. Deduplicate and sort by authority/recency
+    1. SimpleIcons (curated brand icons)
+    2. Iconify API (large curated collection)
+    3. DuckDuckGo (fallback with improved queries)
+    4. Deduplicate and sort by authority/recency
 
     Args:
         query: Direct search query (overrides name/exec_path)
         name: Application name (used if query not provided)
         exec_path: Executable path (used if query and name not provided)
         limit: Maximum number of results
-        include_github: Include GitHub repo search (slower but more authoritative)
+        include_github: Include GitHub search (disabled)
 
     Returns:
         List of IconResult objects, prioritized by source quality and recency
@@ -652,29 +510,21 @@ def search_icons(
     all_results = []
     seen_urls = set()
 
-    # Phase 1: GitHub repos (optional - most authoritative but slow)
-    if include_github:
-        github_results = search_github_repos(search_term, limit=3)
-        for result in github_results:
-            if result.image_url not in seen_urls:
-                all_results.append(result)
-                seen_urls.add(result.image_url)
-
-    # Phase 2: SimpleIcons (well-maintained brand icons)
-    simpleicons_results = search_simple_icons(search_term, limit=3)
+    # Phase 1: SimpleIcons (well-maintained brand icons)
+    simpleicons_results = search_simple_icons(search_term, limit=5)
     for result in simpleicons_results:
         if result.image_url not in seen_urls:
             all_results.append(result)
             seen_urls.add(result.image_url)
 
-    # Phase 3: Iconify (large curated collection)
-    iconify_results = search_iconify(search_term, limit=5)
+    # Phase 2: Iconify (large curated collection)
+    iconify_results = search_iconify(search_term, limit=8)
     for result in iconify_results:
         if result.image_url not in seen_urls:
             all_results.append(result)
             seen_urls.add(result.image_url)
 
-    # Phase 4: DuckDuckGo (fallback with improved queries)
+    # Phase 3: DuckDuckGo (fallback with improved queries)
     # Request more results to fill up to limit
     remaining = limit - len(all_results)
     if remaining > 0:
@@ -686,7 +536,7 @@ def search_icons(
                 all_results.append(result)
                 seen_urls.add(result.image_url)
 
-    # Phase 5: Sort by source authority and current score
+    # Phase 4: Sort by source authority and current score
     all_results.sort(key=lambda r: r.calculate_current_score(), reverse=True)
 
     # Return top results
