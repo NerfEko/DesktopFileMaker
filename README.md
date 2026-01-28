@@ -4,6 +4,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
+<div align="center">
+  <img src="img/preview_1.png" width="45%" alt="Desktop File Maker Preview 1" />
+  <img src="img/preview_2.png" width="45%" alt="Desktop File Maker Preview 2" />
+</div>
+
 A modern, optimized Linux TUI (Terminal User Interface) application for creating and managing `.desktop` files with ease. **Runs entirely in your terminal** - perfect for packaging AppImage applications and other executables.
 
 > **⚠️ Important**: This is a **terminal application** that must be run from a command line. It provides a beautiful text-based interface within your terminal window.
