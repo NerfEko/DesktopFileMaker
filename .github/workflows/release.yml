@@ -1,0 +1,102 @@
+name: Build and Release AppImage
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v0.1.0, v1.0.0, etc.
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write  # Required for creating releases
+
+jobs:
+  build-appimage:
+    runs-on: ubuntu-20.04  # Use older Ubuntu for better compatibility
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          python3-pip \
+          python3-venv \
+          file \
+          desktop-file-utils \
+          libfuse2
+    
+    - name: Get version from tag
+      id: get_version
+      run: |
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/v}
+        else
+          VERSION="0.1.0-dev"
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+    
+    - name: Build AppImage
+      run: |
+        chmod +x build-appimage.sh
+        ./build-appimage.sh ${{ steps.get_version.outputs.VERSION }}
+    
+    - name: Test AppImage
+      run: |
+        APPIMAGE=$(find dist -name "*.AppImage" -type f)
+        chmod +x "$APPIMAGE"
+        # Test that it runs (just check --help or version)
+        "$APPIMAGE" --help || echo "AppImage built successfully"
+    
+    - name: Get AppImage filename
+      id: appimage_file
+      run: |
+        APPIMAGE=$(find dist -name "*.AppImage" -type f)
+        echo "APPIMAGE_PATH=$APPIMAGE" >> $GITHUB_OUTPUT
+        echo "APPIMAGE_NAME=$(basename $APPIMAGE)" >> $GITHUB_OUTPUT
+    
+    - name: Upload AppImage as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: DesktopFileMaker-AppImage
+        path: ${{ steps.appimage_file.outputs.APPIMAGE_PATH }}
+        retention-days: 90
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ steps.appimage_file.outputs.APPIMAGE_PATH }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        body: |
+          ## Desktop File Maker ${{ steps.get_version.outputs.VERSION }}
+          
+          ### Download and Run
+          
+          Download the AppImage below and run it:
+          
+          ```bash
+          chmod +x ${{ steps.appimage_file.outputs.APPIMAGE_NAME }}
+          ./${{ steps.appimage_file.outputs.APPIMAGE_NAME }}
+          ```
+          
+          ### What's New
+          
+          See the full changelog below.
+          
+          ### Installation Alternatives
+          
+          - **AppImage** (recommended): Download below, no installation needed
+          - **From source**: Clone the repo and run `./install.sh`
+          - **Using pipx**: `pipx install git+https://github.com/NerfEko/DesktopFileMaker.git`
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,9 @@
 # Desktop File Maker
 
+[![Release](https://img.shields.io/github/v/release/NerfEko/DesktopFileMaker)](https://github.com/NerfEko/DesktopFileMaker/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
 A modern Linux TUI (Terminal User Interface) application for creating and managing `.desktop` files with ease. Perfect for packaging AppImage applications and other executables.
 
 ## Features
@@ -24,9 +28,25 @@ A modern Linux TUI (Terminal User Interface) application for creating and managi
 
 ## Installation
 
-Desktop File Maker works on **all Linux distributions** (Arch, Ubuntu, Fedora, Debian, etc.) without requiring root access or system-wide pip installations.
+### Option 1: AppImage (Easiest - No Installation Required) 🚀
 
-### Option 1: Automatic Installation (Recommended)
+**Download and run immediately - works on any Linux distro!**
+
+1. **Download the latest AppImage** from the [Releases page](https://github.com/NerfEko/DesktopFileMaker/releases/latest)
+
+2. **Make it executable and run:**
+   ```bash
+   chmod +x DesktopFileMaker-*.AppImage
+   ./DesktopFileMaker-*.AppImage
+   ```
+
+**That's it!** No installation, no dependencies, just download and run.
+
+---
+
+Desktop File Maker also supports installation from source on **all Linux distributions** (Arch, Ubuntu, Fedora, Debian, etc.)
+
+### Option 2: Automatic Installation (Recommended for Development)
 
 The easiest way to install on any Linux distribution:
 
@@ -43,7 +63,7 @@ This will:
 - ✅ Work on Arch, Ubuntu, Fedora, and any modern Linux distro
 - ✅ No root/sudo required
 
-### Option 2: Using Make
+### Option 3: Using Make
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -51,7 +71,7 @@ cd DesktopFileMaker
 make install
 ```
 
-### Option 3: Manual Installation
+### Option 4: Manual Installation
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -67,7 +87,7 @@ source venv/bin/activate
 pip install -e .
 ```
 
-### Option 4: Using pipx (Isolated Installation)
+### Option 5: Using pipx (Isolated Installation)
 
 ```bash
 pipx install git+https://github.com/NerfEko/DesktopFileMaker.git
@@ -85,6 +105,32 @@ Modern Linux distributions (Arch, Fedora 38+, Ubuntu 23.04+) follow [PEP 668](ht
 
 **For Arch users:** This avoids the `error: externally-managed-environment` without breaking your system!
 
+**Prefer no installation at all?** Use the **AppImage** (Option 1) - just download and run!
+
+---
+
+## Building AppImage Locally
+
+Want to build the AppImage yourself?
+
+```bash
+# Clone the repository
+git clone https://github.com/NerfEko/DesktopFileMaker.git
+cd DesktopFileMaker
+
+# Build AppImage
+./build-appimage.sh
+
+# Find the AppImage in dist/
+./dist/DesktopFileMaker-*.AppImage
+```
+
+The build script will:
+- Download appimagetool automatically
+- Create a bundled Python environment
+- Package everything into a single executable
+- Output to `dist/` directory
+
 ## Quick Start
 
 ### Run the Application
@@ -92,7 +138,10 @@ Modern Linux distributions (Arch, Fedora 38+, Ubuntu 23.04+) follow [PEP 668](ht
 After installation, run with:
 
 ```bash
-# If ~/.local/bin is in your PATH:
+# If using AppImage:
+./DesktopFileMaker-*.AppImage
+
+# If installed from source and ~/.local/bin is in your PATH:
 desktop-file-maker
 
 # Or using make:
