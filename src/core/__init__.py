@@ -33,7 +33,6 @@ from .icon_handler import (
     validate_icon_file,
     get_icon_suggestions,
     copy_icon_to_user_share,
-    get_common_icon_names,
 )
 from .icon_search import (
     search_icons,
@@ -73,7 +72,6 @@ __all__ = [
     "validate_icon_file",
     "get_icon_suggestions",
     "copy_icon_to_user_share",
-    "get_common_icon_names",
     # icon_search
     "search_icons",
     "extract_search_term",

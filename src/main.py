@@ -1,6 +1,5 @@
 """Main entry point for desktop-file-maker TUI application."""
 
-import sys
 from src.tui.app import DesktopFileMakerApp
 
 

@@ -2,8 +2,10 @@
 textual>=0.47.0
 requests>=2.31.0
 ddgs>=9.0.0
-pillow>=10.0.0
 
 # Development dependencies
 pytest>=7.4.0
 pytest-cov>=4.1.0
+
+# Optional dependencies (for AppImage building)
+# pillow>=10.0.0

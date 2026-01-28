@@ -11,7 +11,13 @@ import requests
 import tempfile
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from ddgs import DDGS
+
+try:
+    from ddgs import DDGS
+    DDGS_AVAILABLE = True
+except ImportError:
+    DDGS = None
+    DDGS_AVAILABLE = False
 
 
 class IconResult:
@@ -516,6 +522,10 @@ def search_images_duckduckgo(query: str, limit: int = 15) -> List[IconResult]:
         List of IconResult objects, scored and sorted by relevance
     """
     if not query or not query.strip():
+        return []
+
+    if not DDGS_AVAILABLE:
+        print("Warning: ddgs module not available, icon search disabled")
         return []
 
     try:

@@ -97,16 +97,24 @@ create_appdir() {
 install_python_deps() {
     print_info "Installing Python dependencies..."
     
-    # Create virtual environment in AppDir
-    python3 -m venv "$APPDIR/usr/python"
+    # Download and extract standalone Python build
+    PYTHON_VERSION="3.11.9"
+    PYTHON_URL="https://github.com/indygreg/python-build-standalone/releases/download/20240415/cpython-${PYTHON_VERSION}+20240415-x86_64-unknown-linux-gnu-install_only.tar.gz"
+    PYTHON_ARCHIVE="$BUILD_DIR/python.tar.gz"
     
-    # Activate and install dependencies
-    source "$APPDIR/usr/python/bin/activate"
+    print_info "Downloading standalone Python ${PYTHON_VERSION}..."
+    curl -L -o "$PYTHON_ARCHIVE" "$PYTHON_URL"
     
-    pip install --upgrade pip setuptools wheel
-    pip install -e "$SCRIPT_DIR"
+    print_info "Extracting Python..."
+    mkdir -p "$APPDIR/usr/python"
+    tar -xzf "$PYTHON_ARCHIVE" -C "$APPDIR/usr/python" --strip-components=1
     
-    deactivate
+    # Install dependencies using the bundled Python
+    print_info "Installing Python packages..."
+    "$APPDIR/usr/python/bin/python3" -m pip install --no-warn-script-location \
+        textual>=0.47.0 \
+        requests>=2.31.0 \
+        ddgs>=9.0.0
     
     print_success "Python dependencies installed"
 }
@@ -133,6 +141,7 @@ copy_app_files() {
 create_apprun() {
     print_info "Creating AppRun script..."
     
+    # Create the main AppRun script
     cat > "$APPDIR/AppRun" << 'EOF'
 #!/bin/bash
 
@@ -140,15 +149,17 @@ create_apprun() {
 
 APPDIR="$(dirname "$(readlink -f "$0")")"
 
-# Set Python path
+# Set Python environment for standalone Python build
+export PYTHONHOME="$APPDIR/usr/python"
 export PYTHONPATH="$APPDIR/usr:$PYTHONPATH"
-export PATH="$APPDIR/usr/python/bin:$PATH"
+export LD_LIBRARY_PATH="$APPDIR/usr/python/lib:$LD_LIBRARY_PATH"
 
 # Use bundled Python
 PYTHON="$APPDIR/usr/python/bin/python3"
 
 # Run the application
-exec "$PYTHON" -m src.main "$@"
+cd "$APPDIR/usr" || exit 1
+"$PYTHON" -m src.main "$@"
 EOF
     
     chmod +x "$APPDIR/AppRun"

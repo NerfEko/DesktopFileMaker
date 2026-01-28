@@ -7,7 +7,6 @@ from textual.widgets import (
     Header,
     Footer,
     Button,
-    Static,
     Label,
     Input,
     Select,

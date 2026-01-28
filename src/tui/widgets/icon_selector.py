@@ -9,7 +9,7 @@ import tempfile
 import time
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical, Horizontal
-from textual.widgets import Static, Button, Label, OptionList
+from textual.widgets import Button, Label, OptionList
 from textual.widgets.option_list import Option
 from textual.screen import ModalScreen
 from textual.binding import Binding
