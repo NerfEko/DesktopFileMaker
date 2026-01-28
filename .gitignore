@@ -122,16 +122,52 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# IDE
+# IDE and Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.vs/
+.vimrc
+.nvimrc
+*.sublime-project
+*.sublime-workspace
+.atom/
+.brackets.json
+.editorconfig
 
-# OS
+# OS-specific files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Desktop.ini
+
+# Personal configuration
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+config.local
+settings.local
+*local.conf
+*local.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+.log
+logs/
+temp/
+tmp/
 
 # Project specific
 *.desktop
@@ -160,3 +196,76 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.pyenv/
+pyenv/
+conda-env/
+.conda/
+
+# Development and debugging
+.debug/
+debug/
+.attach_pid*
+core.*
+*.stackdump
+.gdb_history
+
+# Documentation builds
+docs/_build/
+docs/build/
+site/
+_build/
+.docusaurus/
+.next/
+out/
+
+# Security and secrets
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+secrets/
+.secrets/
+.env.secret
+
+# Personal notes and TODO files
+TODO.md
+TODO.txt
+NOTES.md
+NOTES.txt
+notes/
+.notes/
+personal/
+scratch/
+
+# Test and benchmark results
+benchmark/
+benchmarks/
+perf/
+profile/
+*.prof
+*.pstats
+
+# Local development files
+.local/
+local/
+*.local.*
+development/
+dev/
+
+# Backup and patch files
+*.orig
+*.rej
+*.patch
+*~
+.#*
+#*#
+
+# IDE session files
+.sessions/
+.workspace
+*.code-workspace
+.history/
+.ionide/
