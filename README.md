@@ -83,28 +83,7 @@ cd DesktopFileMaker
 - 🧹 **Clean uninstall** - `./uninstall.sh` removes everything perfectly
 - ⚡ **Smart detection** - Uninstaller auto-detects installation mode
 
-### Option 3: Arch Linux (AUR) 🏛️
-
-**For Arch users - coming soon to AUR!**
-
-```bash
-# Using yay (recommended)
-yay -S desktop-file-maker
-
-# Using paru
-paru -S desktop-file-maker
-
-# Or the git version for latest development
-yay -S desktop-file-maker-git
-```
-
-Benefits:
-- ✅ **Native Arch package** - integrates perfectly with system
-- ✅ **Automatic updates** with your system updates
-- ✅ **Proper dependency handling** via pacman
-- ✅ **Clean uninstall** with `pacman -R desktop-file-maker`
-
-### Option 4: Using Make
+### Option 3: Using Make
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -112,7 +91,7 @@ cd DesktopFileMaker
 make install
 ```
 
-### Option 5: Manual Installation
+### Option 4: Manual Installation
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -128,7 +107,7 @@ source venv/bin/activate
 pip install -e .
 ```
 
-### Option 6: Using pipx (Isolated Installation)
+### Option 5: Using pipx (Isolated Installation)
 
 ```bash
 pipx install git+https://github.com/NerfEko/DesktopFileMaker.git
