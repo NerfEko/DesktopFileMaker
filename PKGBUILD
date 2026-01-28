@@ -1,6 +1,6 @@
 # Maintainer: Your Name <your.email@example.com>
 pkgname=desktop-file-maker
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="A modern Linux TUI application for creating and managing .desktop files"
 arch=('any')
@@ -24,6 +24,17 @@ package() {
     # Install license
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     
-    # Install desktop entry
-    install -Dm644 appimage/desktop-file-maker.desktop "$pkgdir/usr/share/applications/desktop-file-maker.desktop"
+    # Create desktop entry directly (since the file might not be in the tarball)
+    install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/desktop-file-maker.desktop" << EOF
+[Desktop Entry]
+Type=Application
+Name=Desktop File Maker
+Comment=Create and manage .desktop files with a modern TUI
+Exec=desktop-file-maker
+Icon=application-x-desktop
+Categories=Development;Utility;
+Terminal=true
+StartupNotify=false
+Keywords=desktop;file;creator;appimage;
+EOF
 }
