@@ -11,12 +11,9 @@ A modern, optimized Linux TUI (Terminal User Interface) application for creating
 ## Features
 
 - 🖥️ **Terminal-Based Interface** - Beautiful TUI that runs in your terminal
-- ✨ **Optimized Codebase** - Recently cleaned up with 130+ lines of unused code removed
-- 🚀 **Smart Autocomplete** - Tab completion for executables and icon paths  
-- 🔍 **Icon Search** - Search and download icons from the internet (optional dependency)
+- 🔍 **Icon Search** - Search and download icons from the internet (optional)
 - 🎨 **Visual Feedback** - Color-coded interface with real-time validation
 - 📦 **AppImage Support** - Special handling for AppImage files with auto-detection
-- 🖼️ **Icon Management** - Browse and select icons from system icon themes
 - ✅ **Field Validation** - Real-time validation of all desktop file fields
 - 📝 **Live Preview** - See your desktop file content before saving
 - 📂 **Smart Placement** - Automatically places files in the correct locations:
