@@ -211,38 +211,6 @@ desktop-file-maker/
 └── README.md
 ```
 
-### Recent Optimizations (v0.1.0)
-
-- 🗑️ **Removed 130+ lines** of unused `get_common_icon_names()` function
-- 🧹 **Cleaned up imports** - removed unused `Static` widgets
-- 📦 **Modernized packaging** - removed legacy `setup.py`, using `pyproject.toml`
-- 🔧 **Optional dependencies** - icon search gracefully degrades if `ddgs` not available
-- 📁 **Removed empty directories** - cleaned up unused `screens/` folder
-
-## What's New in v0.1.0
-
-This release focuses on **code quality and optimization**:
-
-### ✨ Major Cleanup
-- **163 net lines removed** from codebase while maintaining full functionality
-- Eliminated redundant code and unused functions
-- Streamlined imports and dependencies
-
-### 📦 Better Packaging
-- Modern `pyproject.toml` configuration
-- Simplified dependency management
-- Consistent requirements across all config files
-
-### 🛡️ Improved Reliability  
-- Made optional dependencies truly optional
-- Better error handling for missing components
-- Graceful degradation of features
-
-### 🚀 AppImage Ready
-- Fresh AppImage build (50MB, x86_64)
-- Fully self-contained with embedded Python
-- Works on any Linux distribution without installation
-
 ## Architecture
 
 ### Core Modules (Pure Functions)
