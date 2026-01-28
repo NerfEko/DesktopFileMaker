@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Build AppImage for Desktop File Maker
+# Build AppImage for Desktop File Maker (Fast version using system Python)
 # Creates a portable executable for all Linux distributions
 #
 
@@ -15,8 +15,7 @@ NC='\033[0m'
 
 # Configuration
 APP_NAME="DesktopFileMaker"
-APP_VERSION="${1:-0.1.0}"
-PYTHON_VERSION="3.11"
+APP_VERSION="${1:-0.1.1}"
 ARCH="x86_64"
 
 # Directories
@@ -41,7 +40,7 @@ print_error() {
 print_header() {
     echo ""
     echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
-    echo -e "${BLUE}  Building AppImage for Desktop File Maker${NC}"
+    echo -e "${BLUE}  Building AppImage for Desktop File Maker (Fast)${NC}"
     echo -e "${BLUE}════════════════════════════════════════════════════════${NC}"
     echo ""
 }
@@ -55,7 +54,11 @@ check_dependencies() {
         exit 1
     fi
     
-    # Note: pip will be available inside the venv we create
+    if ! python3 -m pip --version &> /dev/null; then
+        print_error "pip is not available"
+        exit 1
+    fi
+    
     print_success "Dependencies OK"
 }
 
@@ -86,39 +89,35 @@ create_appdir() {
     # Clean and create AppDir
     rm -rf "$APPDIR"
     mkdir -p "$APPDIR/usr/bin"
-    mkdir -p "$APPDIR/usr/lib"
+    mkdir -p "$APPDIR/usr/lib/python3/site-packages"
     mkdir -p "$APPDIR/usr/share/applications"
     mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
     
     print_success "AppDir structure created"
 }
 
-# Install Python and dependencies
+# Install dependencies using virtual environment
 install_python_deps() {
     print_info "Installing Python dependencies..."
     
-    # Download and extract standalone Python build
-    PYTHON_VERSION="3.11.9"
-    PYTHON_URL="https://github.com/indygreg/python-build-standalone/releases/download/20240415/cpython-${PYTHON_VERSION}+20240415-x86_64-unknown-linux-gnu-install_only.tar.gz"
-    PYTHON_ARCHIVE="$BUILD_DIR/python.tar.gz"
+    # Create a temporary virtual environment
+    TEMP_VENV="$BUILD_DIR/temp_venv"
+    rm -rf "$TEMP_VENV"
+    python3 -m venv "$TEMP_VENV"
     
-    print_info "Downloading standalone Python ${PYTHON_VERSION}..."
-    if [ ! -f "$PYTHON_ARCHIVE" ]; then
-        curl -L -o "$PYTHON_ARCHIVE" "$PYTHON_URL"
-    else
-        print_success "Python archive already downloaded"
-    fi
-    
-    print_info "Extracting Python..."
-    mkdir -p "$APPDIR/usr/python"
-    tar -xzf "$PYTHON_ARCHIVE" -C "$APPDIR/usr/python" --strip-components=1
-    
-    # Install dependencies using the bundled Python
+    # Install dependencies in the venv
     print_info "Installing Python packages..."
-    "$APPDIR/usr/python/bin/python3" -m pip install --no-warn-script-location \
+    "$TEMP_VENV/bin/pip" install --no-warn-script-location \
         textual>=0.47.0 \
         requests>=2.31.0 \
         ddgs>=9.0.0
+    
+    # Copy site-packages to AppDir
+    print_info "Copying Python packages..."
+    cp -r "$TEMP_VENV/lib/python"*/site-packages/* "$APPDIR/usr/lib/python3/site-packages/"
+    
+    # Clean up temp venv
+    rm -rf "$TEMP_VENV"
     
     print_success "Python dependencies installed"
 }
@@ -153,13 +152,11 @@ create_apprun() {
 
 APPDIR="$(dirname "$(readlink -f "$0")")"
 
-# Set Python environment for standalone Python build
-export PYTHONHOME="$APPDIR/usr/python"
-export PYTHONPATH="$APPDIR/usr:$PYTHONPATH"
-export LD_LIBRARY_PATH="$APPDIR/usr/python/lib:$LD_LIBRARY_PATH"
+# Set Python environment to use system Python with bundled packages
+export PYTHONPATH="$APPDIR/usr/lib/python3/site-packages:$APPDIR/usr:$PYTHONPATH"
 
-# Use bundled Python
-PYTHON="$APPDIR/usr/python/bin/python3"
+# Use system Python
+PYTHON="python3"
 
 # Run the application
 cd "$APPDIR/usr" || exit 1
