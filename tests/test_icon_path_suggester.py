@@ -58,8 +58,9 @@ class TestIconPathSuggester:
             result = await suggester.get_suggestion("/usr/share/pixmaps/")
             # Should find image files or directories
             if result:
-                # Should be a file or directory
+                # Should be a file or directory and have arrow
                 assert "/" in result
+                assert result.endswith(" 🠊")
 
         anyio.run(run_test)
 

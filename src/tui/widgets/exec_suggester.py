@@ -55,7 +55,8 @@ class ExecutableSuggester(Suggester):
 
     def _scan_executables(self) -> List[str]:
         """
-        Scan common paths for executable files.
+        Scan common paths for executable files and AppImage files.
+        AppImage files are included regardless of executable status.
 
         Returns:
             Sorted list of executable file paths.
@@ -66,13 +67,13 @@ class ExecutableSuggester(Suggester):
         for path in paths:
             try:
                 for item in path.iterdir():
-                    if item.is_file() and os.access(item, os.X_OK):
+                    if item.is_file() and (os.access(item, os.X_OK) or item.name.lower().endswith('.appimage')):
                         executables.add(str(item))
                     elif item.is_symlink():
-                        # Follow symlinks to check if target is executable
+                        # Follow symlinks to check if target is executable or AppImage
                         try:
                             target = item.resolve()
-                            if target.is_file() and os.access(target, os.X_OK):
+                            if target.is_file() and (os.access(target, os.X_OK) or target.name.lower().endswith('.appimage')):
                                 executables.add(str(item))
                         except (OSError, RuntimeError):
                             # Broken symlink or circular reference
@@ -82,6 +83,19 @@ class ExecutableSuggester(Suggester):
                 continue
 
         return sorted(executables)
+
+    @staticmethod
+    def is_appimage(file_path: str) -> bool:
+        """
+        Check if a file is an AppImage.
+
+        Args:
+            file_path: Path to the file to check.
+
+        Returns:
+            True if the file is an AppImage, False otherwise.
+        """
+        return file_path.lower().endswith('.appimage')
 
     def _get_executables(self) -> List[str]:
         """
@@ -99,6 +113,7 @@ class ExecutableSuggester(Suggester):
     ) -> List[str]:
         """
         Search a specific directory for executable files and subdirectories.
+        Also includes .appimage files regardless of executable status.
 
         Args:
             directory: Directory to search.
@@ -124,8 +139,8 @@ class ExecutableSuggester(Suggester):
                 # Add directories with trailing /
                 if item.is_dir():
                     items.append(str(item) + "/")
-                # Add executable files
-                elif item.is_file() and os.access(item, os.X_OK):
+                # Add executable files or AppImage files (regardless of executable status)
+                elif item.is_file() and (os.access(item, os.X_OK) or item.name.lower().endswith('.appimage')):
                     items.append(str(item))
                 elif item.is_symlink():
                     # Follow symlinks to check type
@@ -133,7 +148,7 @@ class ExecutableSuggester(Suggester):
                         target = item.resolve()
                         if target.is_dir():
                             items.append(str(item) + "/")
-                        elif target.is_file() and os.access(target, os.X_OK):
+                        elif target.is_file() and (os.access(target, os.X_OK) or target.name.lower().endswith('.appimage')):
                             items.append(str(item))
                     except (OSError, RuntimeError):
                         # Broken symlink or circular reference
@@ -157,8 +172,8 @@ class ExecutableSuggester(Suggester):
             value: Current value in the input field.
 
         Returns:
-            Suggested completion or None if no match found.
-            Directories are returned with trailing '/'.
+            Suggested completion with arrow indicator for display.
+            The actual completion will be clean (without arrow).
         """
         if not value:
             return None
@@ -197,7 +212,7 @@ class ExecutableSuggester(Suggester):
                     if result.startswith(home):
                         result = "~" + result[len(home) :]
 
-                return result
+                return result + " 🠊"
 
             return None
 
@@ -213,12 +228,12 @@ class ExecutableSuggester(Suggester):
 
             # Check if executable path starts with input
             if exe_compare.startswith(search_value):
-                return exe_path
+                return exe_path + " 🠊"
 
             # Also check if just the executable name matches
             exe_name = Path(exe_path).name
             exe_name_compare = exe_name if self.case_sensitive else exe_name.lower()
             if exe_name_compare.startswith(search_value):
-                return exe_path
+                return exe_path + " 🠊"
 
         return None

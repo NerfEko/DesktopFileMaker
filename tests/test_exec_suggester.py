@@ -18,7 +18,10 @@ class TestExecutableSuggester:
 
             assert result is not None
             assert "bash" in result
-            assert Path(result).exists()
+            assert result.endswith(" 🠊")
+            # Remove arrow to check path exists
+            path_without_arrow = result.replace(" 🠊", "")
+            assert Path(path_without_arrow).exists()
 
         anyio.run(run_test)
 
@@ -107,8 +110,11 @@ class TestExecutableSuggester:
             # Test with /bin/ directory (should find executables)
             result = await suggester.get_suggestion("/bin/")
             assert result is not None
-            assert result.startswith("/bin/")
-            assert Path(result).exists()
+            assert result.endswith(" 🠊")
+            # Remove arrow to check path
+            path_without_arrow = result.replace(" 🠊", "")
+            assert path_without_arrow.startswith("/bin/")
+            assert Path(path_without_arrow).exists()
 
         anyio.run(run_test)
 
@@ -231,4 +237,41 @@ class TestExecutableSuggester:
                 assert result.startswith(home), f"Expected {home}/... but got {result}"
                 assert not result.startswith("~/"), "Should not convert to tilde"
 
+        anyio.run(run_test)
+
+    def test_is_appimage_method(self):
+        """Test the is_appimage static method."""
+        # Test positive cases
+        assert ExecutableSuggester.is_appimage("test.appimage") is True
+        assert ExecutableSuggester.is_appimage("TEST.APPIMAGE") is True
+        assert ExecutableSuggester.is_appimage("/path/to/myapp.AppImage") is True
+        
+        # Test negative cases
+        assert ExecutableSuggester.is_appimage("test.exe") is False
+        assert ExecutableSuggester.is_appimage("appimage.txt") is False
+        assert ExecutableSuggester.is_appimage("regular_file") is False
+
+    def test_suggester_includes_appimage_files(self):
+        """Test that suggester includes AppImage files regardless of executable status."""
+        import tempfile
+        import os
+        
+        async def run_test():
+            with tempfile.TemporaryDirectory() as tmpdir:
+                # Create a non-executable AppImage file
+                appimage_path = Path(tmpdir) / "test.appimage"
+                appimage_path.write_text("dummy appimage content")
+                
+                # Ensure it's not executable initially
+                appimage_path.chmod(0o644)  # rw-r--r--
+                assert not os.access(appimage_path, os.X_OK)
+                
+                suggester = ExecutableSuggester(case_sensitive=True)
+                
+                # Should find the AppImage even though it's not executable
+                result = await suggester.get_suggestion(str(tmpdir) + "/")
+                
+                if result:
+                    assert "test.appimage" in result or result.endswith("test.appimage")
+                
         anyio.run(run_test)

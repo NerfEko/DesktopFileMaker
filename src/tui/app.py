@@ -1,5 +1,7 @@
 """Main TUI application for desktop file maker."""
 
+import os
+import stat
 from typing import Optional
 from textual.app import ComposeResult, App
 from textual.containers import Container, Vertical, Horizontal
@@ -8,7 +10,6 @@ from textual.widgets import (
     Footer,
     Button,
     Label,
-    Input,
     Select,
     TextArea,
 )
@@ -25,6 +26,7 @@ from src.core.icon_search import search_icons, IconResult
 from src.tui.widgets.icon_selector import IconSelectorModal
 from src.tui.widgets.exec_suggester import ExecutableSuggester
 from src.tui.widgets.icon_path_suggester import IconPathSuggester
+from src.tui.widgets.smart_input import SmartInput
 
 
 class DesktopFileMakerApp(App):
@@ -108,12 +110,12 @@ class DesktopFileMakerApp(App):
                 # Name field
                 with Horizontal(classes="form-group"):
                     yield Label("Name:", classes="form-label")
-                    yield Input(id="name-input", placeholder="Application name")
+                    yield SmartInput(id="name-input", placeholder="Application name")
 
                 # Exec field
                 with Horizontal(classes="form-group"):
                     yield Label("Exec:", classes="form-label")
-                    yield Input(
+                    yield SmartInput(
                         id="exec-input",
                         placeholder="/path/to/executable",
                         suggester=ExecutableSuggester(case_sensitive=True),
@@ -122,7 +124,7 @@ class DesktopFileMakerApp(App):
                 # Icon field with search button
                 with Horizontal(classes="form-group"):
                     yield Label("Icon:", classes="form-label")
-                    yield Input(
+                    yield SmartInput(
                         id="icon-input",
                         placeholder="/path/to/icon or select search",
                         suggester=IconPathSuggester(case_sensitive=True),
@@ -132,12 +134,12 @@ class DesktopFileMakerApp(App):
                 # Comment field
                 with Horizontal(classes="form-group"):
                     yield Label("Comment:", classes="form-label")
-                    yield Input(id="comment-input", placeholder="Brief description")
+                    yield SmartInput(id="comment-input", placeholder="Brief description")
 
                 # Categories field
                 with Horizontal(classes="form-group"):
                     yield Label("Categories:", classes="form-label")
-                    yield Input(
+                    yield SmartInput(
                         id="categories-input", placeholder="Development;Utility"
                     )
 
@@ -228,11 +230,11 @@ class DesktopFileMakerApp(App):
     def action_save(self) -> None:
         """Save the desktop file."""
         # Get form values
-        name = self.query_one("#name-input", Input).value
-        exec_path = self.query_one("#exec-input", Input).value
-        icon_field = self.query_one("#icon-input", Input).value or None
-        comment = self.query_one("#comment-input", Input).value or None
-        categories_str = self.query_one("#categories-input", Input).value
+        name = self.query_one("#name-input", SmartInput).value
+        exec_path = self.query_one("#exec-input", SmartInput).value
+        icon_field = self.query_one("#icon-input", SmartInput).value or None
+        comment = self.query_one("#comment-input", SmartInput).value or None
+        categories_str = self.query_one("#categories-input", SmartInput).value
         terminal = self.query_one("#terminal-select", Select).value
 
         # Handle pending icon download
@@ -273,6 +275,21 @@ class DesktopFileMakerApp(App):
         # Parse categories
         categories = [c.strip() for c in categories_str.split(";") if c.strip()] or None
 
+        # Check if exec_path is an AppImage and make it executable if needed
+        if exec_path and exec_path.lower().endswith('.appimage'):
+            from pathlib import Path
+            import stat
+            
+            exec_file = Path(exec_path)
+            if exec_file.exists() and not os.access(exec_file, os.X_OK):
+                try:
+                    # Make AppImage executable
+                    current_mode = exec_file.stat().st_mode
+                    exec_file.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+                    self.notify(f"Made {exec_file.name} executable", severity="information")
+                except (OSError, PermissionError) as e:
+                    self.notify(f"Failed to make AppImage executable: {str(e)}", severity="warning")
+
         # Validate
         valid, errors = validate_all_fields(name, exec_path, icon, categories)
 
@@ -304,11 +321,11 @@ class DesktopFileMakerApp(App):
 
     def action_clear(self) -> None:
         """Clear all form fields."""
-        self.query_one("#name-input", Input).value = ""
-        self.query_one("#exec-input", Input).value = ""
-        self.query_one("#icon-input", Input).value = ""
-        self.query_one("#comment-input", Input).value = ""
-        self.query_one("#categories-input", Input).value = ""
+        self.query_one("#name-input", SmartInput).value = ""
+        self.query_one("#exec-input", SmartInput).value = ""
+        self.query_one("#icon-input", SmartInput).value = ""
+        self.query_one("#comment-input", SmartInput).value = ""
+        self.query_one("#categories-input", SmartInput).value = ""
         self.query_one("#terminal-select", Select).value = False
         self.query_one("#preview", TextArea).text = ""
 

@@ -206,7 +206,7 @@ class IconPathSuggester(Suggester):
                     if result.startswith(home):
                         result = "~" + result[len(home) :]
 
-                return result
+                return result + " 🠊"
 
             return None
 
@@ -222,12 +222,12 @@ class IconPathSuggester(Suggester):
 
             # Check if icon path starts with input
             if icon_compare.startswith(search_value):
-                return icon_path
+                return icon_path + " 🠊"
 
             # Also check if just the icon name matches
             icon_name = Path(icon_path).name
             icon_name_compare = icon_name if self.case_sensitive else icon_name.lower()
             if icon_name_compare.startswith(search_value):
-                return icon_path
+                return icon_path + " 🠊"
 
         return None
