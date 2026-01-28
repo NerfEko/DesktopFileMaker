@@ -4,27 +4,31 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-A modern Linux TUI (Terminal User Interface) application for creating and managing `.desktop` files with ease. Perfect for packaging AppImage applications and other executables.
+A modern, optimized Linux TUI (Terminal User Interface) application for creating and managing `.desktop` files with ease. **Runs entirely in your terminal** - perfect for packaging AppImage applications and other executables.
+
+> **⚠️ Important**: This is a **terminal application** that must be run from a command line. It provides a beautiful text-based interface within your terminal window.
 
 ## Features
 
-- ✨ **Interactive TUI** - User-friendly terminal interface built with Textual
-- 🚀 **Smart Autocomplete** - Tab completion for executables and icon paths
-- 🔍 **Multi-Source Icon Search** - Search icons from SimpleIcons, Iconify, and DuckDuckGo
-- 🎨 **Color-Coded Results** - Easy-to-identify icon sources with visual indicators
+- 🖥️ **Terminal-Based Interface** - Beautiful TUI that runs in your terminal
+- ✨ **Optimized Codebase** - Recently cleaned up with 130+ lines of unused code removed
+- 🚀 **Smart Autocomplete** - Tab completion for executables and icon paths  
+- 🔍 **Icon Search** - Search and download icons from the internet (optional dependency)
+- 🎨 **Visual Feedback** - Color-coded interface with real-time validation
 - 📦 **AppImage Support** - Special handling for AppImage files with auto-detection
 - 🖼️ **Icon Management** - Browse and select icons from system icon themes
-- ✅ **Validation** - Real-time validation of all desktop file fields
+- ✅ **Field Validation** - Real-time validation of all desktop file fields
 - 📝 **Live Preview** - See your desktop file content before saving
 - 📂 **Smart Placement** - Automatically places files in the correct locations:
   - User scope: `~/.local/share/applications/`
   - System scope: `/usr/share/applications/` (requires sudo)
 - 🔧 **Full Field Support** - All standard desktop file fields:
   - Name, Exec, Icon, Comment
-  - Categories, MIME types, Keywords
-  - Terminal, NoDisplay, Hidden flags
+  - Categories, Terminal flag
   - And more!
 - 🐧 **Universal Linux Support** - Works on Arch, Ubuntu, Fedora, Debian, and more
+- ⚡ **Modern Packaging** - Uses pyproject.toml, no legacy setup.py
+- 🛡️ **Graceful Dependencies** - Optional features degrade gracefully when dependencies are missing
 
 ## Installation
 
@@ -34,13 +38,21 @@ A modern Linux TUI (Terminal User Interface) application for creating and managi
 
 1. **Download the latest AppImage** from the [Releases page](https://github.com/NerfEko/DesktopFileMaker/releases/latest)
 
-2. **Make it executable and run:**
+2. **Make it executable and run from terminal:**
    ```bash
-   chmod +x DesktopFileMaker-*.AppImage
-   ./DesktopFileMaker-*.AppImage
+   # Download (example filename)
+   wget https://github.com/NerfEko/DesktopFileMaker/releases/download/v0.1.0/DesktopFileMaker-0.1.0-x86_64.AppImage
+   
+   # Make executable
+   chmod +x DesktopFileMaker-0.1.0-x86_64.AppImage
+   
+   # Run from terminal (required - this is a TUI app)
+   ./DesktopFileMaker-0.1.0-x86_64.AppImage
    ```
 
-**That's it!** No installation, no dependencies, just download and run.
+**⚠️ Must run from terminal**: Double-clicking the AppImage file won't work because this is a terminal user interface application. You need to open a terminal and run it from the command line.
+
+**That's it!** No installation, no dependencies, just download and run from your terminal.
 
 ---
 
@@ -133,24 +145,43 @@ The build script will:
 
 ## Quick Start
 
-### Run the Application
+### How to Run the Application
 
-After installation, run with:
+**⚠️ Important**: This application runs in your terminal and provides a text-based user interface. You cannot double-click to run it.
 
 ```bash
-# If using AppImage:
-./DesktopFileMaker-*.AppImage
+# Method 1: Using AppImage (recommended)
+# Download from releases, then:
+chmod +x DesktopFileMaker-0.1.0-x86_64.AppImage
+./DesktopFileMaker-0.1.0-x86_64.AppImage
 
-# If installed from source and ~/.local/bin is in your PATH:
+# Method 2: If installed from source and ~/.local/bin is in your PATH:
 desktop-file-maker
 
-# Or using make:
+# Method 3: Using make (if you have the source code):
 make run
 
-# Or from venv directly:
+# Method 4: From virtual environment (development):
 source venv/bin/activate
 python -m src.main
 ```
+
+### Terminal Requirements
+
+- Any modern terminal emulator (GNOME Terminal, Konsole, xterm, etc.)
+- Terminal with color support (most modern terminals)
+- Minimum 80x24 character terminal size (larger recommended)
+
+### Basic Usage
+
+1. **Open a terminal** (Ctrl+Alt+T on most Linux distributions)
+2. **Navigate** to where you downloaded/installed the application
+3. **Run the command** (see methods above)
+4. **Use the TUI interface**:
+   - Use `Tab` and `Shift+Tab` to navigate between fields
+   - Use arrow keys within multi-option fields
+   - Press `Ctrl+S` to save
+   - Press `Ctrl+C` to quit
 
 ### Create a Desktop File
 
@@ -217,24 +248,64 @@ StartupNotify=true
 ```
 desktop-file-maker/
 ├── src/
-│   ├── core/                    # Core business logic
+│   ├── core/                    # Core business logic (optimized)
 │   │   ├── desktop_file.py      # Desktop file generation/parsing
 │   │   ├── validation.py        # Field validation
 │   │   ├── file_system.py       # File operations
-│   │   └── icon_handler.py      # Icon management
+│   │   ├── icon_handler.py      # Icon management (cleaned up)
+│   │   └── icon_search.py       # Icon search (with graceful degradation)
 │   ├── tui/                     # Terminal UI
-│   │   ├── app.py               # Main application
-│   │   ├── screens/             # Screen components
-│   │   └── widgets/             # Custom widgets
+│   │   ├── app.py               # Main application (optimized imports)
+│   │   └── widgets/             # Custom widgets (cleaned up)
+│   │       ├── exec_suggester.py
+│   │       ├── icon_path_suggester.py
+│   │       └── icon_selector.py
 │   └── main.py                  # Entry point
 ├── tests/                       # Test suite
 │   ├── test_desktop_file.py
 │   ├── test_validation.py
-│   └── test_file_system.py
-├── README.md
+│   ├── test_file_system.py
+│   └── test_icon_search.py
+├── appimage/                    # AppImage build resources
+│   ├── generate_icon.py
+│   └── desktop-file-maker.desktop
+├── build-appimage.sh            # AppImage build script
+├── pyproject.toml              # Modern Python packaging
 ├── requirements.txt
-└── setup.py
+└── README.md
 ```
+
+### Recent Optimizations (v0.1.0)
+
+- 🗑️ **Removed 130+ lines** of unused `get_common_icon_names()` function
+- 🧹 **Cleaned up imports** - removed unused `Static` widgets
+- 📦 **Modernized packaging** - removed legacy `setup.py`, using `pyproject.toml`
+- 🔧 **Optional dependencies** - icon search gracefully degrades if `ddgs` not available
+- 📁 **Removed empty directories** - cleaned up unused `screens/` folder
+
+## What's New in v0.1.0
+
+This release focuses on **code quality and optimization**:
+
+### ✨ Major Cleanup
+- **163 net lines removed** from codebase while maintaining full functionality
+- Eliminated redundant code and unused functions
+- Streamlined imports and dependencies
+
+### 📦 Better Packaging
+- Modern `pyproject.toml` configuration
+- Simplified dependency management
+- Consistent requirements across all config files
+
+### 🛡️ Improved Reliability  
+- Made optional dependencies truly optional
+- Better error handling for missing components
+- Graceful degradation of features
+
+### 🚀 AppImage Ready
+- Fresh AppImage build (50MB, x86_64)
+- Fully self-contained with embedded Python
+- Works on any Linux distribution without installation
 
 ## Architecture
 
@@ -279,11 +350,21 @@ pytest --cov=src tests/
 
 | Shortcut | Action |
 |----------|--------|
-| `Tab` | Move to next field / Accept autocomplete |
+| `Tab` | Move to next field |
 | `Shift+Tab` | Move to previous field |
-| `Right Arrow` | Accept autocomplete suggestion |
+| `Enter` | Activate button/field (context-dependent) |
+| `Space` | Toggle selection in select fields |
+| `Arrow Keys` | Navigate within multi-option fields |
 | `Ctrl+S` | Save desktop file |
 | `Ctrl+C` | Quit application |
+| `Escape` | Cancel current operation/close modal |
+
+### Field-Specific Controls
+
+- **Text Input Fields**: Type normally, use Ctrl+A to select all
+- **Select Fields**: Use arrow keys or mouse to choose options
+- **Autocomplete**: Start typing, suggestions appear automatically
+- **Icon Search**: Click "Search" button or press Enter in icon field
 
 ## Uninstallation
 
@@ -331,6 +412,44 @@ desktop-file-maker
 ```
 
 ## Troubleshooting
+
+### AppImage Issues
+
+**"Permission denied" when running AppImage:**
+```bash
+chmod +x DesktopFileMaker-*.AppImage
+./DesktopFileMaker-*.AppImage
+```
+
+**"Nothing happens" when double-clicking AppImage:**
+This is normal! The application is a terminal interface. You must run it from a terminal:
+```bash
+# Open terminal first (Ctrl+Alt+T), then:
+./DesktopFileMaker-*.AppImage
+```
+
+**AppImage won't execute:**
+- Ensure you're on a 64-bit Linux system
+- Check that FUSE is installed: `sudo apt install fuse` (Ubuntu/Debian)
+- Try running from terminal to see error messages
+
+### Terminal Interface Issues
+
+**"Interface looks broken or garbled":**
+- Ensure your terminal supports color (most modern terminals do)
+- Try a different terminal emulator (GNOME Terminal, Konsole, xterm)
+- Make sure terminal is at least 80x24 characters
+
+**"Can't navigate the interface":**
+- Use `Tab` and `Shift+Tab` to move between fields
+- Use arrow keys within selection fields
+- Press `Ctrl+C` to quit
+- Press `Ctrl+S` to save
+
+**"Icon search not working":**
+Icon search is optional and requires internet connection. The app works fine without it for basic desktop file creation.
+
+### Desktop File Issues
 
 ### Desktop file not appearing in application menu
 
