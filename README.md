@@ -10,58 +10,33 @@
   <img src="img/preview_2.png" width="80%" alt="Desktop File Maker Preview 2" />
 </div>
 
-A modern, optimized Linux TUI (Terminal User Interface) application for creating and managing `.desktop` files with ease. **Runs entirely in your terminal** - perfect for packaging AppImage applications and other executables.
+A Linux TUI application for creating `.desktop` files. Runs in your terminal with a text-based interface.
 
-> **⚠️ Important**: This is a **terminal application** that must be run from a command line. It provides a beautiful text-based interface within your terminal window.
+**Note**: This is a terminal application - run it from a command line.
 
 ## Features
 
-- ✨ **Interactive TUI** - User-friendly terminal interface built with Textual
-- 🔍 **Multi-Source Icon Search** - Search icons from SimpleIcons, Iconify, and DuckDuckGo
-- 🚀 **Smart Autocomplete** - Tab completion for executables and icon paths
-- 🎨 **Color-Coded Results** - Easy-to-identify icon sources with visual indicators
-- 📦 **AppImage Support** - Special handling for AppImage files with auto-detection
-- 🖼️ **Icon Management** - Browse and select icons from system icon themes
-- ✅ **Validation** - Real-time validation of all desktop file fields
-- 📝 **Live Preview** - See your desktop file content before saving
-- 📂 **Smart Placement** - Automatically places files in the correct locations:
-  - User scope: `~/.local/share/applications/`
-  - System scope: `/usr/share/applications/` (requires sudo)
-- 🔧 **Full Field Support** - All standard desktop file fields:
-  - Name, Exec, Icon, Comment
-  - Categories, Terminal flag
-  - And more!
-- 🐧 **Universal Linux Support** - Works on Arch, Ubuntu, Fedora, Debian, and more
+- Interactive terminal interface
+- Icon search from multiple sources
+- Autocomplete for executables and paths
+- AppImage support with auto-detection
+- Field validation
+- Live preview of desktop files
+- Saves to correct locations (user or system)
+- Works on all Linux distributions
 
 ## Installation
 
-### Option 1: AppImage (Easiest - No Installation Required) 🚀
+### Option 1: AppImage (Recommended)
 
-**Download and run immediately - works on any Linux distro!**
-
-1. **Download the latest AppImage** from the [Releases page](https://github.com/NerfEko/DesktopFileMaker/releases/latest)
-
-2. **Make it executable and run from terminal:**
+1. Download from the [Releases page](https://github.com/NerfEko/DesktopFileMaker/releases/latest)
+2. Make it executable and run:
    ```bash
-   # Download (example filename)
-   wget https://github.com/NerfEko/DesktopFileMaker/releases/download/v0.1.0/DesktopFileMaker-0.1.0-x86_64.AppImage
-   
-   # Make executable
    chmod +x DesktopFileMaker-0.1.0-x86_64.AppImage
-   
-   # Run from terminal (required - this is a TUI app)
    ./DesktopFileMaker-0.1.0-x86_64.AppImage
    ```
 
-**That's it!** No installation, no dependencies, just download and run.
-
----
-
-Desktop File Maker also supports installation from source on **all Linux distributions** (Arch, Ubuntu, Fedora, Debian, etc.)
-
-### Option 2: Smart Installation with Choice 🎯
-
-**Choose your preferred installation mode - user or system-wide!**
+### Option 2: Install from Source
 
 ```bash
 git clone https://github.com/NerfEko/DesktopFileMaker.git
@@ -69,25 +44,7 @@ cd DesktopFileMaker
 ./install.sh
 ```
 
-**Installation Options:**
-
-**🏠 Option 1: User Installation (Default - No sudo required)**
-- ✅ Completely isolated - no system modifications
-- ✅ Installs to `~/.local/bin/desktop-file-maker`  
-- ✅ Launch from application menu
-- ✅ Zero system impact, easy to uninstall
-
-**🌐 Option 2: System-wide Installation (Optional - Requires sudo)**
-- ✅ Run with simple command: `desktop-file-maker` (from anywhere)
-- ✅ Available for all users on the system
-- ✅ Installs to `/usr/local/bin/desktop-file-maker`
-- ✅ Still completely clean and uninstallable
-
-**Why this approach rocks:**
-- 🚫 **Your choice** - No forced system modifications
-- 🎯 **Application menu integration** - Both modes add to application menu
-- 🧹 **Clean uninstall** - `./uninstall.sh` removes everything perfectly
-- ⚡ **Smart detection** - Uninstaller auto-detects installation mode
+Choose user installation (default) or system-wide (requires sudo).
 
 ### Option 3: Using Make
 
@@ -119,19 +76,7 @@ pip install -e .
 pipx install git+https://github.com/NerfEko/DesktopFileMaker.git
 ```
 
-### Why This Installation Method?
-
-Modern Linux distributions (Arch, Fedora 38+, Ubuntu 23.04+) follow [PEP 668](https://peps.python.org/pep-0668/) which prevents `pip install` from modifying system Python packages. Our installer:
-
-- 🔒 **Safe**: Uses isolated virtual environment (no `--break-system-packages` needed)
-- 🎯 **Universal**: Works on ALL Linux distros (Arch, Ubuntu, Fedora, Debian, etc.)
-- 🚫 **No Root**: Installs to `~/.local` (no sudo required)
-- 🧹 **Clean**: Easy to uninstall completely
-- ⚡ **Modern**: Follows Python packaging best practices
-
-**For Arch users:** This avoids the `error: externally-managed-environment` without breaking your system!
-
-**Prefer no installation at all?** Use the **AppImage** (Option 1) - just download and run!
+The installer uses a virtual environment to avoid conflicts with system Python packages.
 
 ---
 
@@ -159,31 +104,19 @@ The build script will:
 
 ## Quick Start
 
-### How to Run the Application
+## Usage
 
-**⚠️ Important**: This application runs in your terminal and provides a text-based user interface. You cannot double-click to run it.
+### Running the Application
 
 ```bash
-# Method 1: Using AppImage (recommended)
-# Download from releases, then:
-chmod +x DesktopFileMaker-0.1.0-x86_64.AppImage
+# AppImage
 ./DesktopFileMaker-0.1.0-x86_64.AppImage
 
-# Method 2: From application menu (if installed with ./install.sh)
-# Search for "Desktop File Maker" in your application menu
-
-# Method 3: Simple command (if installed system-wide with sudo)
+# Installed version
 desktop-file-maker
 
-# Method 4: Using the launcher directly (user installation):
-~/.local/bin/desktop-file-maker
-
-# Method 5: Using make (if you have the source code):
+# Or from source
 make run
-
-# Method 6: From virtual environment (development):
-source venv/bin/activate
-python -m src.main
 ```
 
 ### Terminal Requirements
@@ -194,32 +127,15 @@ python -m src.main
 
 ### Basic Usage
 
-1. **Open a terminal** (Ctrl+Alt+T on most Linux distributions)
-2. **Navigate** to where you downloaded/installed the application
-3. **Run the command** (see methods above)
-4. **Use the TUI interface**:
-   - Use `Tab` and `Shift+Tab` to navigate between fields
-   - Use arrow keys within multi-option fields
-   - Press `Ctrl+S` to save
-   - Press `Ctrl+C` to quit
-
-### Create a Desktop File
-
-1. Launch the application
-2. Fill in the required fields:
-   - **Name**: Application name (e.g., "My App")
-   - **Exec**: Path to executable (e.g., `/home/user/app.AppImage`)
+1. Fill in the required fields:
+   - **Name**: Application name
+   - **Exec**: Path to executable
    - **Icon**: Icon name or path (optional)
-   - **Comment**: Brief description (optional)
-3. Click "Generate Preview" to see the result
-4. Click "Save" to create the `.desktop` file
+   - **Comment**: Description (optional)
+2. Press Ctrl+S to save
+3. Press Ctrl+C to quit
 
-### For AppImage Files
-
-1. Select your AppImage file in the Exec field
-2. The app will auto-detect the name from the filename
-3. Choose an icon (optional)
-4. Save!
+Use Tab/Shift+Tab to navigate between fields.
 
 ## Usage Examples
 
@@ -388,22 +304,16 @@ pytest --cov=src tests/
 
 ## Uninstallation
 
-**Complete removal with zero traces:**
-
 ```bash
-# Using the uninstall script (recommended)
 ./uninstall.sh
+```
 
-# Or manually remove files:
+Or manually:
+```bash
 rm -rf venv
 rm ~/.local/bin/desktop-file-maker
 rm ~/.local/share/applications/desktop-file-maker.desktop
-
-# Then delete the source directory
-rm -rf ~/path/to/desktop-file-maker
 ```
-
-**No configuration files to clean up** - the installer never modifies your shell configuration!
 
 ## Common Use Cases
 
@@ -443,39 +353,30 @@ desktop-file-maker
 
 ### AppImage Issues
 
-**"Permission denied" when running AppImage:**
+**Permission denied:**
 ```bash
 chmod +x DesktopFileMaker-*.AppImage
-./DesktopFileMaker-*.AppImage
 ```
 
-**"Nothing happens" when double-clicking AppImage:**
-This is normal! The application is a terminal interface. You must run it from a terminal:
-```bash
-# Open terminal first (Ctrl+Alt+T), then:
-./DesktopFileMaker-*.AppImage
-```
+**Nothing happens when double-clicking:**
+Run it from a terminal instead.
 
 **AppImage won't execute:**
-- Ensure you're on a 64-bit Linux system
-- Check that FUSE is installed: `sudo apt install fuse` (Ubuntu/Debian)
-- Try running from terminal to see error messages
+- Ensure 64-bit Linux system
+- Install FUSE if needed: `sudo apt install fuse`
 
-### Terminal Interface Issues
+### Interface Issues
 
-**"Interface looks broken or garbled":**
-- Ensure your terminal supports color (most modern terminals do)
-- Try a different terminal emulator (GNOME Terminal, Konsole, xterm)
-- Make sure terminal is at least 80x24 characters
+**Interface looks broken:**
+- Use a modern terminal with color support
+- Ensure terminal is at least 80x24 characters
 
-**"Can't navigate the interface":**
-- Use `Tab` and `Shift+Tab` to move between fields
-- Use arrow keys within selection fields
-- Press `Ctrl+C` to quit
-- Press `Ctrl+S` to save
+**Can't navigate:**
+- Use Tab/Shift+Tab to move between fields
+- Use arrow keys in selection fields
 
-**"Icon search not working":**
-Icon search is optional and requires internet connection. The app works fine without it for basic desktop file creation.
+**Icon search not working:**
+Icon search requires internet connection. The app works fine without it.
 
 ### Desktop File Issues
 
@@ -508,15 +409,7 @@ Contributions are welcome! Please:
 
 ## Code Standards
 
-This project follows functional programming principles:
-
-- ✅ Pure functions (no side effects)
-- ✅ Immutable data structures
-- ✅ Composition over inheritance
-- ✅ Explicit dependencies
-- ✅ Comprehensive tests
-
-See [code-quality.md](docs/code-quality.md) for details.
+This project follows functional programming principles with pure functions, immutable data, and comprehensive tests.
 
 ## License
 
@@ -532,6 +425,4 @@ MIT License - see LICENSE file for details
 
 For issues, questions, or suggestions, please open an issue on GitHub.
 
----
 
-Made with ❤️ for Linux users
