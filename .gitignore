@@ -150,3 +150,13 @@ src/
 *.tar.gz
 namcap.log
 test-aur.sh
+
+# Pip install artifacts
+=*
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
