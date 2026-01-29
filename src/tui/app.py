@@ -278,12 +278,11 @@ class DesktopFileMakerApp(App):
         # Check if exec_path is an AppImage and make it executable if needed
         if exec_path and exec_path.lower().endswith('.appimage'):
             from pathlib import Path
-            import stat
             
             exec_file = Path(exec_path)
             if exec_file.exists() and not os.access(exec_file, os.X_OK):
                 try:
-                    # Make AppImage executable
+                    # Make AppImage executable (user, group, other)
                     current_mode = exec_file.stat().st_mode
                     exec_file.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
                     self.notify(f"Made {exec_file.name} executable", severity="information")
