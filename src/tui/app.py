@@ -237,31 +237,45 @@ class DesktopFileMakerApp(App):
         categories_str = self.query_one("#categories-input", SmartInput).value
         terminal = self.query_one("#terminal-select", Select).value
 
+        # Expand ~ to full home directory path for exec_path
+        if exec_path:
+            from pathlib import Path
+            exec_path = str(Path(exec_path).expanduser())
+
+        # Expand ~ to full home directory path for icon_field
+        if icon_field:
+            icon_field = str(Path(icon_field).expanduser())
+
         # Handle pending icon download
         icon = icon_field
         if self._pending_icon and icon_field and icon_field.startswith("[Selected:"):
-            # Download the pending icon permanently
+            # Download the pending icon to app-specific directory
             self.notify("Downloading icon...", severity="information")
 
             from pathlib import Path
+            import re
 
-            download_dir = (
-                Path.home()
-                / ".local"
-                / "share"
-                / "icons"
-                / "hicolor"
-                / "512x512"
-                / "apps"
-            )
-            download_dir.mkdir(parents=True, exist_ok=True)
+            # Create safe directory name from app name
+            safe_app_name = re.sub(r'[^\w\-_.]', '_', name)
+            if not safe_app_name:
+                safe_app_name = "app"
+            
+            # Create app-specific directory
+            base_app_dir = Path.home() / ".local" / "share" / "desktop-file-maker" / safe_app_name
+            app_dir = base_app_dir
+            counter = 1
+            while app_dir.exists():
+                app_dir = Path(str(base_app_dir) + f"_{counter}")
+                counter += 1
+            
+            app_dir.mkdir(parents=True, exist_ok=True)
 
-            downloaded_path = self._pending_icon.download_image(download_dir)
+            downloaded_path = self._pending_icon.download_image(app_dir)
 
             if downloaded_path:
                 icon = str(downloaded_path)
                 self.notify(
-                    f"Icon downloaded: {downloaded_path.name}", severity="information"
+                    f"Icon downloaded: {app_dir.name}/{downloaded_path.name}", severity="information"
                 )
             else:
                 self.notify(
@@ -275,19 +289,134 @@ class DesktopFileMakerApp(App):
         # Parse categories
         categories = [c.strip() for c in categories_str.split(";") if c.strip()] or None
 
-        # Check if exec_path is an AppImage and make it executable if needed
+        # Copy AppImage and icon to dedicated app folder for permanent access
         if exec_path and exec_path.lower().endswith('.appimage'):
             from pathlib import Path
+            import shutil
+            import re
             
-            exec_file = Path(exec_path)
-            if exec_file.exists() and not os.access(exec_file, os.X_OK):
+            source_path = Path(exec_path).resolve()
+            
+            if source_path.exists():
+                # Create safe directory name from app name
+                safe_app_name = re.sub(r'[^\w\-_.]', '_', name)
+                if not safe_app_name:
+                    safe_app_name = "app"
+                
+                # Create app-specific directory
+                base_app_dir = Path.home() / ".local" / "share" / "desktop-file-maker" / safe_app_name
+                app_dir = base_app_dir
+                counter = 1
+                while app_dir.exists():
+                    app_dir = Path(str(base_app_dir) + f"_{counter}")
+                    counter += 1
+                
+                app_dir.mkdir(parents=True, exist_ok=True)
+                
                 try:
-                    # Make AppImage executable (user, group, other)
-                    current_mode = exec_file.stat().st_mode
-                    exec_file.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-                    self.notify(f"Made {exec_file.name} executable", severity="information")
+                    # Copy AppImage to app folder
+                    target_appimage = app_dir / source_path.name
+                    shutil.copy2(source_path, target_appimage)
+                    
+                    # Make the copied AppImage executable
+                    target_appimage.chmod(target_appimage.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+                    
+                    # Update exec_path to point to the copied file
+                    exec_path = str(target_appimage)
+                    
+                    self.notify(f"✓ AppImage copied to: {app_dir.name}/{source_path.name}", severity="information")
+                    
+                    # Copy icon to the same app folder (if it's a file path)
+                    if icon and not icon.startswith("[Selected:") and Path(icon).exists():
+                        source_icon = Path(icon).expanduser().resolve()
+                        
+                        if source_icon.exists() and source_icon.is_file():
+                            try:
+                                target_icon = app_dir / source_icon.name
+                                shutil.copy2(source_icon, target_icon)
+                                
+                                # Update icon path to point to the copied file
+                                icon = str(target_icon)
+                                
+                                self.notify(f"✓ Icon copied to: {app_dir.name}/{source_icon.name}", severity="information")
+                                
+                            except (OSError, PermissionError) as e:
+                                self.notify(f"⚠ Failed to copy icon: {str(e)}", severity="warning")
+                                # Continue with original icon path if copy fails
+                    
                 except (OSError, PermissionError) as e:
-                    self.notify(f"Failed to make AppImage executable: {str(e)}", severity="warning")
+                    self.notify(f"⚠ Failed to copy AppImage: {str(e)}", severity="warning")
+                    # Continue with original path if copy fails
+            else:
+                self.notify(f"AppImage file not found: {exec_path}", severity="warning")
+        
+        # Copy icon to local storage if not AppImage but still a file path
+        elif icon and not icon.startswith("[Selected:") and Path(icon).exists():
+            from pathlib import Path
+            import shutil
+            import re
+            
+            source_icon = Path(icon).expanduser().resolve()
+            
+            if source_icon.exists() and source_icon.is_file():
+                # Create safe directory name from app name
+                safe_app_name = re.sub(r'[^\w\-_.]', '_', name)
+                if not safe_app_name:
+                    safe_app_name = "app"
+                
+                # Create app-specific directory
+                base_app_dir = Path.home() / ".local" / "share" / "desktop-file-maker" / safe_app_name
+                app_dir = base_app_dir
+                counter = 1
+                while app_dir.exists():
+                    app_dir = Path(str(base_app_dir) + f"_{counter}")
+                    counter += 1
+                
+                app_dir.mkdir(parents=True, exist_ok=True)
+                
+                try:
+                    # Copy icon to app folder
+                    target_icon = app_dir / source_icon.name
+                    shutil.copy2(source_icon, target_icon)
+                    
+                    # Update icon path to point to the copied file
+                    icon = str(target_icon)
+                    
+                    self.notify(f"✓ Icon copied to: {app_dir.name}/{source_icon.name}", severity="information")
+                    
+                except (OSError, PermissionError) as e:
+                    self.notify(f"⚠ Failed to copy icon: {str(e)}", severity="warning")
+                    # Continue with original path if copy fails
+
+        # Check if exec_path is an AppImage and make it executable if needed (for non-copied files)
+        if exec_path and exec_path.lower().endswith('.appimage'):
+            # Use already expanded exec_path and resolve to absolute path
+            exec_file = Path(exec_path).resolve()
+            
+            if exec_file.exists():
+                # Only try to make executable if we didn't already copy the file
+                # (copied files are already made executable)
+                if not str(exec_file).startswith(str(Path.home() / ".local" / "share" / "desktop-file-maker" / "appimages")):
+                    is_executable = os.access(exec_file, os.X_OK)
+                    self.notify(f"AppImage found: {exec_file.name}, executable: {is_executable}", severity="information")
+                    
+                    if not is_executable:
+                        try:
+                            # Make AppImage executable (user, group, other)
+                            current_mode = exec_file.stat().st_mode
+                            new_mode = current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+                            exec_file.chmod(new_mode)
+                            
+                            # Verify it worked
+                            if os.access(exec_file, os.X_OK):
+                                self.notify(f"✓ Made {exec_file.name} executable", severity="information")
+                            else:
+                                self.notify(f"⚠ Failed to verify executable permissions for {exec_file.name}", severity="warning")
+                                
+                        except (OSError, PermissionError) as e:
+                            self.notify(f"✗ Failed to make AppImage executable: {str(e)}", severity="error")
+                    else:
+                        self.notify(f"AppImage {exec_file.name} is already executable", severity="information")
 
         # Validate
         valid, errors = validate_all_fields(name, exec_path, icon, categories)
