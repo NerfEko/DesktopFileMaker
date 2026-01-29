@@ -75,7 +75,7 @@ class DesktopFileMakerApp(App):
         margin-right: 1;
     }
     
-    Input {
+    SmartInput {
         width: 1fr;
     }
     
@@ -190,11 +190,11 @@ class DesktopFileMakerApp(App):
     def action_preview(self) -> None:
         """Generate and show preview of desktop file."""
         # Get form values
-        name = self.query_one("#name-input", Input).value
-        exec_path = self.query_one("#exec-input", Input).value
-        icon_field = self.query_one("#icon-input", Input).value or None
-        comment = self.query_one("#comment-input", Input).value or None
-        categories_str = self.query_one("#categories-input", Input).value
+        name = self.query_one("#name-input", SmartInput).value
+        exec_path = self.query_one("#exec-input", SmartInput).value
+        icon_field = self.query_one("#icon-input", SmartInput).value or None
+        comment = self.query_one("#comment-input", SmartInput).value or None
+        categories_str = self.query_one("#categories-input", SmartInput).value
         terminal = self.query_one("#terminal-select", Select).value
 
         # Handle pending icon for preview
@@ -339,8 +339,8 @@ class DesktopFileMakerApp(App):
     def action_search_icons(self) -> None:
         """Search for icons and show selection modal."""
         # Get search terms from form
-        name = self.query_one("#name-input", Input).value
-        exec_path = self.query_one("#exec-input", Input).value
+        name = self.query_one("#name-input", SmartInput).value
+        exec_path = self.query_one("#exec-input", SmartInput).value
 
         # Check if we have something to search for
         if not name.strip() and not exec_path.strip():
@@ -386,7 +386,7 @@ class DesktopFileMakerApp(App):
 
                     # Show icon info in the Icon field (not a file path yet)
                     self.query_one(
-                        "#icon-input", Input
+                        "#icon-input", SmartInput
                     ).value = f"[Selected: {icon.display_name}]"
 
                     self.notify(
