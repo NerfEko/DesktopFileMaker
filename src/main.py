@@ -29,7 +29,7 @@ How to run properly:
 
 1. Open a terminal (Ctrl+Alt+T)
 2. Navigate to this file's location  
-3. Run: ./DesktopFileMaker-0.1.0-x86_64.AppImage
+3. Run: ./DesktopFileMaker-0.1.2-x86_64.AppImage
 
 Or drag this file into an open terminal window.
 
